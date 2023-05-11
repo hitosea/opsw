@@ -1,0 +1,9 @@
+*_test.go
+/release/
+opsw_*.tar.gz
+.opsw*
+opsw
+/resources/assets/*
+custom.yaml
+custom.yml
+test.*
