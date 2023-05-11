@@ -6,10 +6,10 @@ import (
 	"github.com/spf13/cobra"
 	"html/template"
 	"io"
-	"opsw/app/route"
+	"opsw/app/routes"
+	"opsw/app/utils"
 	"opsw/app/vars"
 	"opsw/resources/assets"
-	"opsw/utils"
 	"os"
 	"strings"
 	"time"
@@ -23,7 +23,7 @@ var runCommand = &cobra.Command{
 			utils.PrintError("暂不支持的操作系统")
 			os.Exit(1)
 		}
-		err := utils.WriteFile(utils.WorkDir("/run"), utils.FormatYmdHis(time.Now()))
+		err := utils.WriteFile(utils.CacheDir("/run"), utils.FormatYmdHis(time.Now()))
 		if err != nil {
 			utils.PrintError("无法写入文件")
 			os.Exit(1)
@@ -52,7 +52,7 @@ var runCommand = &cobra.Command{
 		router.SetHTMLTemplate(templates)
 		//
 		router.Any("/*path", func(c *gin.Context) {
-			route.Auth(c)
+			routes.Auth(c)
 		})
 		//
 		_ = router.Run(fmt.Sprintf("%s:%s", vars.RunConf.Host, vars.RunConf.Port))
@@ -61,8 +61,8 @@ var runCommand = &cobra.Command{
 
 func runTemplate() (*template.Template, error) {
 	distPath := "/resources/web/dist/"
-	if utils.IsDir(utils.WorkDir(distPath)) {
-		_ = os.RemoveAll(utils.WorkDir(distPath))
+	if utils.IsDir(utils.CacheDir(distPath)) {
+		_ = os.RemoveAll(utils.CacheDir(distPath))
 	}
 	t := template.New("")
 	for name, file := range assets.Web.Files {
@@ -83,7 +83,7 @@ func runTemplate() (*template.Template, error) {
 			if err != nil {
 				return nil, err
 			}
-			err = utils.WriteByte(utils.WorkDir(name), h)
+			err = utils.WriteByte(utils.CacheDir(name), h)
 			if err != nil {
 				return nil, err
 			}

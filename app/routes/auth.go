@@ -1,10 +1,10 @@
-package route
+package routes
 
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"opsw/utils"
+	"opsw/app/utils"
 	"os"
 	"strings"
 )
@@ -13,14 +13,14 @@ func Auth(c *gin.Context) {
 	urlPath := c.Request.URL.Path
 	// 静态资源
 	if strings.HasPrefix(urlPath, "/assets") {
-		c.File(utils.WorkDir(fmt.Sprintf("/resources/web/dist%s", urlPath)))
+		c.File(utils.CacheDir(fmt.Sprintf("/resources/web/dist%s", urlPath)))
 		return
 	}
 	// 退出登录
 	if strings.HasPrefix(urlPath, "/oauth/logout") {
 		userToken := utils.GinGetCookie(c, "user_token")
 		if userToken != "" {
-			apiFile := utils.WorkDir(fmt.Sprintf("/users/%s", userToken))
+			apiFile := utils.CacheDir(fmt.Sprintf("/users/%s", userToken))
 			if utils.IsFile(apiFile) {
 				_ = os.Remove(apiFile)
 			}

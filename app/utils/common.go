@@ -333,7 +333,7 @@ func RunDir(path string) string {
 	return fmt.Sprintf("%s%s", wd, path)
 }
 
-// WorkDir 工作目录
-func WorkDir(path string) string {
-	return RunDir(fmt.Sprintf("/.opsw%s", path))
+// CacheDir 缓存目录
+func CacheDir(path string) string {
+	return RunDir(fmt.Sprintf("/.cache%s", path))
 }

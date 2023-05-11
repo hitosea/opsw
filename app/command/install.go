@@ -3,7 +3,7 @@ package command
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"opsw/utils"
+	"opsw/app/utils"
 	"os"
 )
 
@@ -13,7 +13,7 @@ var installCommand = &cobra.Command{
 	Use:   "install",
 	Short: "安装服务",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		cmdFile = utils.WorkDir("/install/cmd")
+		cmdFile = utils.CacheDir("/install/cmd")
 		//
 		if !utils.CheckOs() {
 			utils.PrintError("暂不支持的操作系统")
