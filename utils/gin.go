@@ -57,7 +57,7 @@ func GinResult(c *gin.Context, code int, content string, values ...any) {
 		if code == http.StatusMovedPermanently {
 			c.Redirect(code, content)
 		} else {
-			c.HTML(http.StatusOK, "/web/dist/index.html", gin.H{
+			c.HTML(http.StatusOK, "/resources/web/dist/index.html", gin.H{
 				"CODE": code,
 				"MSG":  url.QueryEscape(content),
 			})

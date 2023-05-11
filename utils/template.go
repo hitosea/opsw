@@ -12,7 +12,7 @@ import (
 // AssetsContent 从模板中获取内容
 func AssetsContent(name string, envMap map[string]interface{}) string {
 	content := ""
-	for key, file := range assets.AssetsShell.Files {
+	for key, file := range assets.Shell.Files {
 		if file.IsDir() {
 			continue
 		}
@@ -40,6 +40,7 @@ func TemplateContent(templateContent string, envMap map[string]interface{}) stri
 		panic(1)
 	}
 	envMap["RUN_PATH"] = RunDir("")
+	envMap["WORK_PATH"] = WorkDir("")
 	var buffer bytes.Buffer
 	_ = tmpl.Execute(&buffer, envMap)
 	return string(buffer.Bytes())

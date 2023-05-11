@@ -1,4 +1,4 @@
-package app
+package command
 
 import (
 	"fmt"
@@ -7,14 +7,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootApp = &cobra.Command{
+var rootCommand = &cobra.Command{
 	Use:   "opsw",
 	Short: "OPSW is a tool for managing your servers",
 }
 
 func Execute() {
-	rootApp.CompletionOptions.DisableDefaultCmd = true
-	if err := rootApp.Execute(); err != nil {
+	rootCommand.CompletionOptions.DisableDefaultCmd = true
+	if err := rootCommand.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

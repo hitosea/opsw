@@ -28,8 +28,8 @@ run: build
 	./opsw run --mode debug
 
 assets:
-	env CGO_ENABLED=0 go-assets-builder resources/shell -o resources/assets/shell.go -p assets -v AssetsShell
-	env CGO_ENABLED=0 go-assets-builder resources/web/dist -o resources/assets/web.go -p assets -v AssetsWeb
+	env CGO_ENABLED=0 go-assets-builder resources/shell -o resources/assets/shell.go -p assets -v Shell
+	env CGO_ENABLED=0 go-assets-builder resources/web/dist -o resources/assets/web.go -p assets -v Web
 
 clean:
 	@rm -f ./opsw

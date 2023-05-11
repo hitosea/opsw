@@ -1,11 +1,11 @@
 package main
 
 import (
-	"opsw/app"
+	"opsw/app/command"
 	"runtime"
 )
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	app.Execute()
+	command.Execute()
 }

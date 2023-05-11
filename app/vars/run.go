@@ -1,4 +1,4 @@
-package app
+package vars
 
 type RunModel struct {
 	Mode string

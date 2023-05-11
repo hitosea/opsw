@@ -1,4 +1,4 @@
-package app
+package command
 
 import (
 	"fmt"
@@ -9,11 +9,11 @@ import (
 
 var cmdFile string
 
-var installApp = &cobra.Command{
+var installCommand = &cobra.Command{
 	Use:   "install",
 	Short: "安装服务",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		cmdFile = utils.RunDir("/.opsw/install/cmd")
+		cmdFile = utils.WorkDir("/install/cmd")
 		//
 		if !utils.CheckOs() {
 			utils.PrintError("暂不支持的操作系统")
@@ -31,5 +31,5 @@ var installApp = &cobra.Command{
 }
 
 func init() {
-	rootApp.AddCommand(installApp)
+	rootCommand.AddCommand(installCommand)
 }

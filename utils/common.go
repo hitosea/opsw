@@ -15,7 +15,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 )
@@ -336,8 +335,5 @@ func RunDir(path string) string {
 
 // WorkDir 工作目录
 func WorkDir(path string) string {
-	if path != "" && !strings.HasPrefix(path, "/") {
-		path = fmt.Sprintf("/%s", path)
-	}
 	return RunDir(fmt.Sprintf("/.opsw%s", path))
 }
