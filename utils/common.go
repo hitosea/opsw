@@ -11,6 +11,7 @@ import (
 	"math/big"
 	"math/rand"
 	"net"
+	"net/mail"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -320,6 +321,15 @@ func StructToJson(data interface{}) string {
 		return ""
 	}
 	return string(jsonBytes)
+}
+
+// FormatEmail 格式化邮箱地址
+func FormatEmail(email string) string {
+	o, err := mail.ParseAddress(email)
+	if err != nil {
+		return ""
+	}
+	return o.Address
 }
 
 // CheckOs 判断系统类型
