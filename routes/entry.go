@@ -84,7 +84,6 @@ func callByName(requireAuth bool, methodName string, object interface{}) bool {
 	} else {
 		methodName = fmt.Sprintf("NoAuth%s", methodName)
 	}
-	fmt.Println(methodName)
 	method := reflect.ValueOf(object).MethodByName(methodName)
 	if method.IsValid() {
 		method.Call(nil)
