@@ -18,18 +18,15 @@ all: assets
 	@cp ./release/opsw_linux_arm64 ./release/opsw_linux_aarch64
 	@cp ./release/opsw_linux_amd64 ./release/opsw_linux_x86_64
 
-build: assets
+build: asset
 	env CGO_ENABLED=0 go build -trimpath -ldflags "$(LDFLAGS)" -o .
-
-install: build
-	./opsw install
 
 run: build
 	./opsw run --mode debug
 
-assets:
-	env CGO_ENABLED=0 go-assets-builder resources/shell -o resources/assets/shell.go -p assets -v Shell
-	env CGO_ENABLED=0 go-assets-builder resources/web/dist -o resources/assets/web.go -p assets -v Web
+asset:
+	env CGO_ENABLED=0 go-assets-builder shell -o assets/shell.go -p assets -v Shell
+	env CGO_ENABLED=0 go-assets-builder web/dist -o assets/web.go -p assets -v Web
 
 clean:
 	@rm -f ./opsw

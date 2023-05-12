@@ -6,10 +6,10 @@ import (
 	"github.com/spf13/cobra"
 	"html/template"
 	"io"
-	"opsw/app/routes"
-	"opsw/app/utils"
-	"opsw/app/vars"
-	"opsw/resources/assets"
+	"opsw/assets"
+	"opsw/routes"
+	"opsw/utils"
+	"opsw/vars"
 	"os"
 	"strings"
 	"time"
@@ -52,7 +52,7 @@ var runCommand = &cobra.Command{
 		router.SetHTMLTemplate(templates)
 		//
 		router.Any("/*path", func(c *gin.Context) {
-			routes.Auth(c)
+			routes.Entry(c)
 		})
 		//
 		_ = router.Run(fmt.Sprintf("%s:%s", vars.RunConf.Host, vars.RunConf.Port))
@@ -60,7 +60,7 @@ var runCommand = &cobra.Command{
 }
 
 func runTemplate() (*template.Template, error) {
-	distPath := "/resources/web/dist/"
+	distPath := "/web/dist/"
 	if utils.IsDir(utils.CacheDir(distPath)) {
 		_ = os.RemoveAll(utils.CacheDir(distPath))
 	}

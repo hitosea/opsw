@@ -3,7 +3,7 @@ package command
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"opsw/app/utils"
+	"opsw/utils"
 	"os"
 )
 
@@ -19,7 +19,7 @@ var installCommand = &cobra.Command{
 			utils.PrintError("暂不支持的操作系统")
 			os.Exit(1)
 		}
-		err := utils.WriteFile(cmdFile, utils.AssetsContent("install.sh", map[string]any{}))
+		err := utils.WriteFile(cmdFile, utils.Assets("/install.sh", map[string]any{}))
 		if err != nil {
 			utils.PrintError(fmt.Sprintf("保存安装文件失败：%s", err.Error()))
 			os.Exit(1)

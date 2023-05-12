@@ -4,32 +4,31 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"opsw/resources/assets"
+	"opsw/assets"
 	"strings"
 	"text/template"
 )
 
-// AssetsContent 从模板中获取内容
-func AssetsContent(name string, envMap map[string]interface{}) string {
+// Assets 从模板中获取内容
+func Assets(name string, envMap map[string]interface{}) string {
 	content := ""
 	for key, file := range assets.Shell.Files {
 		if file.IsDir() {
 			continue
 		}
-		if strings.HasSuffix(key, fmt.Sprintf("/%s", name)) {
+		if strings.HasSuffix(key, name) {
 			h, err := io.ReadAll(file)
 			if err == nil {
-				content = string(h)
+				content = strings.ReplaceAll(string(h), "\t", "    ")
 				break
 			}
 		}
 	}
-	return TemplateContent(content, envMap)
+	return Template(content, envMap)
 }
 
-// TemplateContent 从模板中获取内容
-func TemplateContent(templateContent string, envMap map[string]interface{}) string {
-	templateContent = strings.ReplaceAll(templateContent, "\t", "    ")
+// Template 从模板中获取内容
+func Template(templateContent string, envMap map[string]interface{}) string {
 	tmpl, err := template.New("text").Parse(templateContent)
 	defer func() {
 		if r := recover(); r != nil {

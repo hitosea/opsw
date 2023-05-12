@@ -1,7 +1,7 @@
 package main
 
 import (
-	"opsw/app/command"
+	"opsw/command"
 	"runtime"
 )
 
