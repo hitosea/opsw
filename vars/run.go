@@ -1,11 +1,12 @@
 package vars
 
-type RunModel struct {
-	Mode string
-	Host string
-	Port string
+type RunStruct struct {
+	Mode    string
+	Host    string
+	Port    string
+	StartAt string
 }
 
 var (
-	RunConf RunModel
+	RunConf RunStruct
 )

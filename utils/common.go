@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
@@ -310,6 +311,15 @@ func GetOutput(reader *bufio.Reader) {
 		fmt.Print(output) //输出屏幕内容
 		sumOutput += output
 	}
+}
+
+// StructToJson 结构体转json
+func StructToJson(data interface{}) string {
+	jsonBytes, err := json.Marshal(data)
+	if err != nil {
+		return ""
+	}
+	return string(jsonBytes)
 }
 
 // CheckOs 判断系统类型

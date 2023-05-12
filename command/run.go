@@ -12,7 +12,6 @@ import (
 	"opsw/vars"
 	"os"
 	"strings"
-	"time"
 )
 
 var runCommand = &cobra.Command{
@@ -23,16 +22,16 @@ var runCommand = &cobra.Command{
 			utils.PrintError("暂不支持的操作系统")
 			os.Exit(1)
 		}
-		err := utils.WriteFile(utils.CacheDir("/run"), utils.FormatYmdHis(time.Now()))
-		if err != nil {
-			utils.PrintError("无法写入文件")
-			os.Exit(1)
-		}
 		if vars.RunConf.Host == "" {
 			vars.RunConf.Host = "0.0.0.0"
 		}
 		if vars.RunConf.Port == "" {
 			vars.RunConf.Port = "8080"
+		}
+		err := utils.WriteFile(utils.CacheDir("/run"), utils.StructToJson(vars.RunConf))
+		if err != nil {
+			utils.PrintError("无法写入文件")
+			os.Exit(1)
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -51,8 +50,11 @@ var runCommand = &cobra.Command{
 		}
 		router.SetHTMLTemplate(templates)
 		//
-		router.Any("/*path", func(c *gin.Context) {
-			routes.Entry(c)
+		router.Any("/*path", func(context *gin.Context) {
+			app := routes.AppStruct{
+				Context: context,
+			}
+			app.Entry()
 		})
 		//
 		_ = router.Run(fmt.Sprintf("%s:%s", vars.RunConf.Host, vars.RunConf.Port))
