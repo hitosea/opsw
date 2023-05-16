@@ -11,7 +11,7 @@ all: assets
 		gomips=$(shell echo "$(n)" | cut -d : -f 3);\
 		target_suffix=$${os}_$${arch};\
 		echo "Build $${os}-$${arch}...";\
-		env CGO_ENABLED=0 GOOS=$${os} GOARCH=$${arch} GOMIPS=$${gomips} go build -trimpath -ldflags "$(LDFLAGS)" -o ./release/opsw_$${target_suffix};\
+		env CGO_ENABLED=1 GOOS=$${os} GOARCH=$${arch} GOMIPS=$${gomips} go build -trimpath -ldflags "$(LDFLAGS)" -o ./release/opsw_$${target_suffix};\
 		echo "Build $${os}-$${arch} done";\
 	)
 	@cp ./release/opsw_linux_arm ./release/opsw_linux_aarch
@@ -19,14 +19,15 @@ all: assets
 	@cp ./release/opsw_linux_amd64 ./release/opsw_linux_x86_64
 
 build: asset
-	env CGO_ENABLED=0 go build -trimpath -ldflags "$(LDFLAGS)" -o .
+	env CGO_ENABLED=1 go build -trimpath -ldflags "$(LDFLAGS)" -o .
 
 run: build
 	./opsw run --mode debug
 
 asset:
-	env CGO_ENABLED=0 go-assets-builder shell -o assets/shell.go -p assets -v Shell
-	env CGO_ENABLED=0 go-assets-builder web/dist -o assets/web.go -p assets -v Web
+	env CGO_ENABLED=1 go-assets-builder shell -o assets/shell.go -p assets -v Shell
+	env CGO_ENABLED=1 go-assets-builder web/dist -o assets/web.go -p assets -v Web
+	env CGO_ENABLED=1 go-assets-builder database/*.sql -o assets/database.go -p assets -v Database
 
 clean:
 	@rm -f ./opsw

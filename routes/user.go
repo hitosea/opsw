@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"opsw/database"
 	"opsw/utils"
 	"os"
 )
@@ -16,9 +17,25 @@ func (app *AppStruct) NoAuthApiUserLogin() {
 
 // NoAuthApiUserReg 注册
 func (app *AppStruct) NoAuthApiUserReg() {
-	//email := app.Context.Query("email")
-	//password := app.Context.Query("password")
-	//password2 := app.Context.Query("password2")
+	var (
+		email     = utils.GinInput(app.Context, "email")
+		password  = utils.GinInput(app.Context, "password")
+		password2 = utils.GinInput(app.Context, "password2")
+	)
+	if !utils.IsEmail(email) {
+		utils.GinResult(app.Context, http.StatusBadRequest, "邮箱格式不正确")
+		return
+	}
+	if password != password2 {
+		utils.GinResult(app.Context, http.StatusBadRequest, "两次密码不一致")
+		return
+	}
+	user, err := database.CreateUser(email, "", password)
+	if err != nil {
+		utils.GinResult(app.Context, http.StatusBadRequest, fmt.Sprintf("注册失败：%s", err.Error()))
+		return
+	}
+	utils.GinResult(app.Context, http.StatusOK, "注册成功", user)
 }
 
 // NoAuthApiUserLogout 退出

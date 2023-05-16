@@ -27,6 +27,27 @@ func Assets(name string, envMap map[string]interface{}) string {
 	return Template(content, envMap)
 }
 
+// Sql 从模板中获取内容
+func Sql(name, autoIncrement string) []string {
+	content := ""
+	for key, file := range assets.Database.Files {
+		if file.IsDir() {
+			continue
+		}
+		if strings.HasSuffix(key, name) {
+			h, err := io.ReadAll(file)
+			if err == nil {
+				content = string(h)
+				break
+			}
+		}
+	}
+	content = Template(content, map[string]any{
+		"INCREMENT": autoIncrement,
+	})
+	return strings.Split(content, ";")
+}
+
 // Template 从模板中获取内容
 func Template(templateContent string, envMap map[string]interface{}) string {
 	tmpl, err := template.New("text").Parse(templateContent)

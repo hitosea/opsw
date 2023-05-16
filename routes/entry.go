@@ -15,7 +15,7 @@ import (
 
 type AppStruct struct {
 	Context  *gin.Context
-	UserInfo *vars.UserStruct
+	UserInfo *vars.UserModel
 }
 
 func (app *AppStruct) Entry() {
@@ -36,8 +36,7 @@ func (app *AppStruct) Entry() {
 		apiFile := utils.CacheDir(fmt.Sprintf("/users/%s", app.UserInfo.Token))
 		userData := utils.ReadFile(apiFile)
 		_ = json.Unmarshal([]byte(userData), app.UserInfo)
-		app.UserInfo.Email = utils.FormatEmail(app.UserInfo.Email)
-		if len(app.UserInfo.Email) == 0 {
+		if !utils.IsEmail(app.UserInfo.Email) {
 			app.UserInfo.Token = ""
 		}
 	}

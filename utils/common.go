@@ -332,6 +332,15 @@ func FormatEmail(email string) string {
 	return o.Address
 }
 
+// IsEmail 判断是否是邮箱
+func IsEmail(email string) bool {
+	email = FormatEmail(email)
+	if len(email) == 0 {
+		return false
+	}
+	return true
+}
+
 // CheckOs 判断系统类型
 func CheckOs() bool {
 	return runtime.GOOS == "darwin" || runtime.GOOS == "linux"
