@@ -10,9 +10,21 @@ import (
 
 // NoAuthApiUserLogin 登录
 func (app *AppStruct) NoAuthApiUserLogin() {
-	//email := app.Context.Query("email")
-	//password := app.Context.Query("password")
-	utils.GinResult(app.Context, http.StatusOK, "登录成功")
+	var (
+		email    = utils.GinInput(app.Context, "email")
+		password = utils.GinInput(app.Context, "password")
+	)
+	if !utils.IsEmail(email) {
+		utils.GinResult(app.Context, http.StatusBadRequest, "邮箱格式不正确")
+		return
+	}
+	user, err := database.UserCheck(email, password)
+	if err != nil {
+		utils.GinResult(app.Context, http.StatusBadRequest, fmt.Sprintf("登录失败：%s", err.Error()))
+		return
+	}
+	utils.GinSetCookie(app.Context, "user_token", user.Token, 30*24*86400)
+	utils.GinResult(app.Context, http.StatusOK, "登录成功", user)
 }
 
 // NoAuthApiUserReg 注册
@@ -30,11 +42,12 @@ func (app *AppStruct) NoAuthApiUserReg() {
 		utils.GinResult(app.Context, http.StatusBadRequest, "两次密码不一致")
 		return
 	}
-	user, err := database.CreateUser(email, "", password)
+	user, err := database.UserCreate(email, "", password)
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, fmt.Sprintf("注册失败：%s", err.Error()))
 		return
 	}
+	utils.GinSetCookie(app.Context, "user_token", user.Token, 30*24*86400)
 	utils.GinResult(app.Context, http.StatusOK, "注册成功", user)
 }
 

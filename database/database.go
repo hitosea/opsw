@@ -53,7 +53,41 @@ func Init() (*gorm.DB, error) {
 	return db, err
 }
 
-func CreateUser(email, name, password string) (*vars.UserModel, error) {
+func UserGet(query any) (*vars.UserModel, error) {
+	db, err := InDB(vars.Config.DB)
+	if err != nil {
+		return nil, err
+	}
+	defer closeDB(db)
+	//
+	var userData *vars.UserModel
+	db.Table("users").Where(query).Last(&userData)
+	if userData.ID == 0 {
+		return nil, errors.New("用户不存在")
+	}
+	return userData, nil
+}
+
+func UserCheck(email, password string) (*vars.UserModel, error) {
+	db, err := InDB(vars.Config.DB)
+	if err != nil {
+		return nil, err
+	}
+	defer closeDB(db)
+	//
+	user, err := UserGet(map[string]any{
+		"email": email,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if user.Password != utils.StringMd52(password, user.Encrypt) {
+		return nil, errors.New("邮箱或密码错误")
+	}
+	return user, nil
+}
+
+func UserCreate(email, name, password string) (*vars.UserModel, error) {
 	db, err := InDB(vars.Config.DB)
 	if err != nil {
 		return nil, err

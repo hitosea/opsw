@@ -1,12 +1,12 @@
 package routes
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
+	"opsw/database"
 	"opsw/utils"
 	"opsw/vars"
 	"reflect"
@@ -33,11 +33,13 @@ func (app *AppStruct) Entry() {
 	// 读取身份
 	app.UserInfo.Token = utils.GinGetCookie(app.Context, "user_token")
 	if app.UserInfo.Token != "" {
-		apiFile := utils.CacheDir(fmt.Sprintf("/users/%s", app.UserInfo.Token))
-		userData := utils.ReadFile(apiFile)
-		_ = json.Unmarshal([]byte(userData), app.UserInfo)
-		if !utils.IsEmail(app.UserInfo.Email) {
+		userInfo, err := database.UserGet(map[string]any{
+			"token": app.UserInfo.Token,
+		})
+		if err != nil {
 			app.UserInfo.Token = ""
+		} else {
+			app.UserInfo = userInfo
 		}
 	}
 	// 动态路由（不需要登录）
