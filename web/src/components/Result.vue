@@ -26,11 +26,11 @@
 </style>
 <script lang="ts">
 import {defineComponent, ref} from 'vue'
-import utils from '../utils.js'
+import utils from '../store/utils'
 
 export default defineComponent({
     setup() {
-        let resultCode = utils.resultCode()
+        let resultCode:any = utils.resultCode()
         const resultMsg = utils.resultMsg()
 
         if (resultCode === 400) {

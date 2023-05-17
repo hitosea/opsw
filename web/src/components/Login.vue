@@ -82,8 +82,8 @@ import {defineComponent, ref} from "vue";
 import {LogoGithub, AddCircleOutline} from "@vicons/ionicons5";
 import {FormInst, FormItemRule, FormRules, useMessage, useDialog
 } from 'naive-ui'
-import call from "../call.js";
-import utils from "../utils.js";
+import call from "../store/call";
+import utils from "../store/utils";
 
 
 export default defineComponent({

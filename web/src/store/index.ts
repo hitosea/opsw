@@ -1,7 +1,7 @@
 import {computed, watch, ref} from 'vue'
 import {darkTheme, useOsTheme} from 'naive-ui'
-import utils from "../utils.js";
-import call from "../call.js";
+import utils from "./utils";
+import call from "./call";
 
 const userInfoRef = ref({name: '', avatar_url: ''})
 const themeNameRef = ref('light')
@@ -45,8 +45,8 @@ export function siteSetup() {
 }
 
 export function init() {
-    return new Promise(async (resolve) => {
-        themeNameRef.value = await utils.IDBString("themeName")
+    return new Promise<void>(async (resolve) => {
+        themeNameRef.value = <string>await utils.IDBString("themeName")
         if (['light', 'dark'].indexOf(themeNameRef.value) === -1) {
             themeNameRef.value = useOsTheme().value
         }

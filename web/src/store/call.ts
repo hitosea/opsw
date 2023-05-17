@@ -1,5 +1,5 @@
 import axios from 'axios'
-import utils from "./utils.js";
+import utils from "./utils";
 
 // 创建一个 axios 实例
 const call = axios.create({

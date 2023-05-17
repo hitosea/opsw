@@ -1,5 +1,5 @@
-import localforage from "localforage";
 import Cookies from "js-cookie";
+import * as localforage from "localforage";
 
 localforage.config({name: 'web', storeName: 'common'});
 
@@ -323,7 +323,7 @@ const utils = {
      * @returns {*|number}
      */
     resultCode() {
-        return utils.parseInt(utils.urlParameter("result_code") || window.result_code)
+        return utils.parseInt(utils.urlParameter("result_code") || window['result_code'])
     },
 
     /**
@@ -331,7 +331,7 @@ const utils = {
      * @returns {*|string|string}
      */
     resultMsg() {
-        return decodeURIComponent(utils.urlParameter("result_msg") || window.result_msg)
+        return decodeURIComponent(utils.urlParameter("result_msg") || window['result_msg'])
     },
 
     /**
