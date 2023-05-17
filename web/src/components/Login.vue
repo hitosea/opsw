@@ -166,24 +166,23 @@ export default defineComponent({
                     return
                 }
                 loadIng.value = true
-                call({
-                    method: "post",
-                    url: formData.value.type === 'reg' ? 'user/reg' : 'user/login',
-                    data: formData.value
-                }).then(({msg}) => {
-                    message.success(msg);
-                    setTimeout(() => {
-                        window.location.href = utils.removeURLParameter(window.location.href, ['result_code', 'result_msg'])
-                    }, 300)
-                }).catch(({msg}) => {
-                    dialog.error({
-                        title: '请求错误',
-                        content: msg,
-                        positiveText: '确定',
+                call.post(formData.value.type === 'reg' ? 'user/reg' : 'user/login', formData.value)
+                    .then(({msg}) => {
+                        message.success(msg);
+                        setTimeout(() => {
+                            window.location.href = utils.removeURLParameter(window.location.href, ['result_code', 'result_msg'])
+                        }, 300)
                     })
-                }).finally(() => {
-                    loadIng.value = false
-                })
+                    .catch(({msg}) => {
+                        dialog.error({
+                            title: '请求错误',
+                            content: msg,
+                            positiveText: '确定',
+                        })
+                    })
+                    .finally(() => {
+                        loadIng.value = false
+                    })
             })
         }
         return {

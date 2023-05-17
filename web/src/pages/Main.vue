@@ -6,6 +6,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
+import call from "../store/call";
 
 export default defineComponent({
     setup() {
