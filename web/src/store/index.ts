@@ -3,7 +3,17 @@ import {ConfigProviderProps, createDiscreteApi, darkTheme, useOsTheme} from 'nai
 import utils from "./utils";
 import call from "./call";
 
-const userInfoRef = ref()
+interface UserInfoModel {
+    id?: number
+    email?: string
+    name?: string
+    token?: string
+    avatar?: string
+    created_at?: string
+    updated_at?: string
+}
+
+const userInfoRef = ref<UserInfoModel>({})
 const themeNameRef = ref('light')
 const themeRef = computed(() => {
     const {value} = themeNameRef
@@ -26,8 +36,11 @@ export function useUserInfo() {
 
 export function loadUserInfo() {
     return new Promise((resolve, reject) => {
-        call.get('user/info')
+        call.get<UserInfoModel>('user/info')
             .then(({data}) => {
+                if (utils.isEmpty(data.name)) {
+                    data.name = data.email
+                }
                 userInfoRef.value = data
                 resolve(data)
             })

@@ -63,3 +63,10 @@ func (app *AppStruct) NoAuthApiUserLogout() {
 	utils.GinRemoveCookie(app.Context, "user_token")
 	utils.GinResult(app.Context, http.StatusOK, "退出成功")
 }
+
+// AuthApiUserInfo 用户信息
+func (app *AppStruct) AuthApiUserInfo() {
+	app.UserInfo.Encrypt = ""
+	app.UserInfo.Password = ""
+	utils.GinResult(app.Context, http.StatusOK, "获取成功", app.UserInfo)
+}

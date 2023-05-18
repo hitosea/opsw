@@ -15,6 +15,7 @@ type UserModel struct {
 	Encrypt   string `json:"encrypt"`
 	Password  string `json:"password"`
 	Token     string `json:"token"`
+	Avatar    string `json:"avatar"`
 	CreatedAt uint32 `json:"created_at"`
 	UpdatedAt uint32 `json:"updated_at"`
 }

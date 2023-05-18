@@ -109,6 +109,7 @@ func UserCreate(email, name, password string) (*vars.UserModel, error) {
 		Encrypt:   encrypt,
 		Password:  utils.StringMd52(password, encrypt),
 		Token:     utils.GenerateString(32),
+		Avatar:    "",
 		CreatedAt: uint32(time.Now().Unix()),
 		UpdatedAt: uint32(time.Now().Unix()),
 	}

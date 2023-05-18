@@ -5,6 +5,18 @@ localforage.config({name: 'web', storeName: 'common'});
 
 const utils = {
     /**
+     * 判断是否为空
+     * @param name
+     */
+    isEmpty(name) {
+        return name === null
+            || name === undefined
+            || name === "null"
+            || name === "undefined"
+            || name.replace(/\s/g, '') === "";
+    },
+
+    /**
      * 是否数组
      * @param obj
      * @returns {boolean}

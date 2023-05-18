@@ -1,14 +1,15 @@
 <template>
     <div class="main">
-        Main
+        <Header/>
     </div>
 </template>
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import call from "../store/call";
+import Header from "../components/Header.vue";
 
 export default defineComponent({
+    components: {Header},
     setup() {
         return {};
     }
@@ -17,9 +18,6 @@ export default defineComponent({
 
 <style lang="less" scoped>
 .main {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+
 }
 </style>
