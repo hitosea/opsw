@@ -9,9 +9,17 @@ import (
 	"text/template"
 )
 
+var (
+	assetsDict = make(map[string]string)
+	sqlDict    = make(map[string]string)
+)
+
 // Assets 从模板中获取内容
 func Assets(name string, envMap map[string]interface{}) string {
-	content := ""
+	if content, ok := assetsDict[name]; ok {
+		return Template(content, envMap)
+	}
+	assetsDict[name] = ""
 	for key, file := range assets.Shell.Files {
 		if file.IsDir() {
 			continue
@@ -19,17 +27,23 @@ func Assets(name string, envMap map[string]interface{}) string {
 		if strings.HasSuffix(key, name) {
 			h, err := io.ReadAll(file)
 			if err == nil {
-				content = strings.ReplaceAll(string(h), "\t", "    ")
+				assetsDict[name] = strings.ReplaceAll(string(h), "\t", "    ")
 				break
 			}
 		}
 	}
-	return Template(content, envMap)
+	return Template(assetsDict[name], envMap)
 }
 
 // Sql 从模板中获取内容
 func Sql(name, autoIncrement string) []string {
-	content := ""
+	if _, ok := sqlDict[name]; ok {
+		content := Template(sqlDict[name], map[string]any{
+			"INCREMENT": autoIncrement,
+		})
+		return strings.Split(content, ";")
+	}
+	sqlDict[name] = ""
 	for key, file := range assets.Database.Files {
 		if file.IsDir() {
 			continue
@@ -37,12 +51,12 @@ func Sql(name, autoIncrement string) []string {
 		if strings.HasSuffix(key, name) {
 			h, err := io.ReadAll(file)
 			if err == nil {
-				content = string(h)
+				sqlDict[name] = string(h)
 				break
 			}
 		}
 	}
-	content = Template(content, map[string]any{
+	content := Template(sqlDict[name], map[string]any{
 		"INCREMENT": autoIncrement,
 	})
 	return strings.Split(content, ";")

@@ -52,7 +52,7 @@ var runCommand = &cobra.Command{
 			gin.SetMode(gin.ReleaseMode)
 		}
 		router := gin.Default()
-		templates, err := runTemplate()
+		templates, err := loadWebTemplate()
 		if err != nil {
 			utils.PrintError(fmt.Sprintf("模板初始化失败: %s", err.Error()))
 			os.Exit(1)
@@ -71,7 +71,7 @@ var runCommand = &cobra.Command{
 	},
 }
 
-func runTemplate() (*template.Template, error) {
+func loadWebTemplate() (*template.Template, error) {
 	distPath := "/web/dist/"
 	if utils.IsDir(utils.CacheDir(distPath)) {
 		_ = os.RemoveAll(utils.CacheDir(distPath))
