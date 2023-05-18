@@ -173,13 +173,7 @@ export default defineComponent({
                             window.location.href = utils.removeURLParameter(window.location.href, ['result_code', 'result_msg'])
                         }, 300)
                     })
-                    .catch(({msg}) => {
-                        dialog.error({
-                            title: '请求错误',
-                            content: msg,
-                            positiveText: '确定',
-                        })
-                    })
+                    .catch(call.dialog)
                     .finally(() => {
                         loadIng.value = false
                     })
