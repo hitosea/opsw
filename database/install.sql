@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS servers (
     port VARCHAR(100) NOT NULL,
     remark VARCHAR(255) NOT NULL,
     state VARCHAR(50) NOT NULL,
+    token VARCHAR(100) NOT NULL,
     systems TEXT NOT NULL,
     created_at integer NOT NULL,
     updated_at integer NOT NULL

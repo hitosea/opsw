@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
@@ -40,7 +41,7 @@ func (app *AppStruct) AuthApiServerCreate() {
 		"ip": ip,
 	}).Last(&server)
 	if server.Id > 0 {
-		utils.GinResult(app.Context, http.StatusBadRequest, "服务器已存在")
+		utils.GinResult(app.Context, http.StatusBadRequest, fmt.Sprintf("服务器 [%s] 已存在", ip))
 		return
 	}
 	server = &database.Server{
@@ -50,6 +51,7 @@ func (app *AppStruct) AuthApiServerCreate() {
 		Port:     port,
 		Remark:   remark,
 		State:    "Creating",
+		Token:    utils.GenerateString(32),
 	}
 	err = db.Transaction(func(tx *gorm.DB) error {
 		err = tx.Create(server).Error
@@ -70,5 +72,31 @@ func (app *AppStruct) AuthApiServerCreate() {
 		utils.GinResult(app.Context, http.StatusBadRequest, "添加服务器失败", gin.H{"error": err.Error()})
 	} else {
 		utils.GinResult(app.Context, http.StatusOK, "添加服务器成功", server)
+	}
+}
+
+// AuthApiServerList 服务器列表
+func (app *AppStruct) AuthApiServerList() {
+	db, err := database.InDB(vars.Config.DB)
+	if err != nil {
+		utils.GinResult(app.Context, http.StatusBadRequest, "数据库连接失败", gin.H{"error": err.Error()})
+	}
+	defer database.CloseDB(db)
+	//
+	list := &[]database.ServerList{}
+	err = db.
+		Model(&database.Server{}).
+		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id").
+		Joins("left join server_users on server_users.server_id = servers.id").
+		Limit(100).
+		Scan(&list).Error
+	if err != nil {
+		utils.GinResult(app.Context, http.StatusBadRequest, "获取服务器列表失败", gin.H{"error": err.Error()})
+	} else {
+		for i := range *list {
+			(*list)[i].Password = "******"
+			(*list)[i].Token = "******"
+		}
+		utils.GinResult(app.Context, http.StatusOK, "服务器列表", gin.H{"list": list})
 	}
 }

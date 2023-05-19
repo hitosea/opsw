@@ -116,9 +116,9 @@ class call {
             options = Object.assign(options, data.dialog)
         }
         if (code === 200) {
-            dialogProvider().success(options)
+            return dialogProvider().success(options)
         } else {
-            dialogProvider().error(options)
+            return dialogProvider().error(options)
         }
     }
 }
