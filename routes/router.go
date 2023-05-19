@@ -30,7 +30,10 @@ func (app *AppStruct) Entry() {
 		return
 	}
 	// 读取身份
-	app.UserInfo.Token = utils.GinGetCookie(app.Context, "user_token")
+	app.UserInfo.Token = utils.GinInput(app.Context, "token")
+	if app.UserInfo.Token == "" {
+		app.UserInfo.Token = utils.GinGetCookie(app.Context, "token")
+	}
 	if app.UserInfo.Token != "" {
 		userInfo, err := database.UserGet(map[string]any{
 			"token": app.UserInfo.Token,

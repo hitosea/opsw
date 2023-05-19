@@ -22,7 +22,7 @@ func (app *AppStruct) NoAuthApiUserLogin() {
 		utils.GinResult(app.Context, http.StatusBadRequest, "登录失败", gin.H{"error": err.Error()})
 		return
 	}
-	utils.GinSetCookie(app.Context, "user_token", user.Token, 30*24*86400)
+	utils.GinSetCookie(app.Context, "token", user.Token, 30*24*86400)
 	utils.GinResult(app.Context, http.StatusOK, "登录成功", user)
 }
 
@@ -46,13 +46,13 @@ func (app *AppStruct) NoAuthApiUserReg() {
 		utils.GinResult(app.Context, http.StatusBadRequest, "注册失败", gin.H{"error": err.Error()})
 		return
 	}
-	utils.GinSetCookie(app.Context, "user_token", user.Token, 30*24*86400)
+	utils.GinSetCookie(app.Context, "token", user.Token, 30*24*86400)
 	utils.GinResult(app.Context, http.StatusOK, "注册成功", user)
 }
 
 // NoAuthApiUserLogout 退出
 func (app *AppStruct) NoAuthApiUserLogout() {
-	utils.GinRemoveCookie(app.Context, "user_token")
+	utils.GinRemoveCookie(app.Context, "token")
 	utils.GinResult(app.Context, http.StatusOK, "退出成功")
 }
 
