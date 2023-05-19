@@ -366,12 +366,15 @@ func Test(str, pattern string) bool {
 }
 
 // RunDir 前面加上绝对路径
-func RunDir(path string) string {
+func RunDir(path string, a ...any) string {
 	wd, _ := os.Getwd()
+	if len(a) > 0 {
+		path = fmt.Sprintf(path, a...)
+	}
 	return fmt.Sprintf("%s%s", wd, path)
 }
 
 // CacheDir 缓存目录
-func CacheDir(path string) string {
-	return RunDir(fmt.Sprintf("/.cache%s", path))
+func CacheDir(path string, a ...any) string {
+	return RunDir(fmt.Sprintf("/.cache%s", path), a...)
 }

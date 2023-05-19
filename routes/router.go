@@ -23,7 +23,7 @@ func (app *AppStruct) Entry() {
 	methodName := urlToName(urlPath)
 	// 静态资源
 	if strings.HasPrefix(urlPath, "/assets") {
-		app.Context.File(utils.CacheDir(fmt.Sprintf("/web/dist%s", urlPath)))
+		app.Context.File(utils.CacheDir("/web/dist%s", urlPath))
 		return
 	}
 	if strings.HasSuffix(urlPath, "/favicon.ico") {

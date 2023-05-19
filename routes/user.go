@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"opsw/database"
 	"opsw/utils"
-	"os"
 )
 
 // NoAuthApiUserLogin 登录
@@ -53,13 +52,6 @@ func (app *AppStruct) NoAuthApiUserReg() {
 
 // NoAuthApiUserLogout 退出
 func (app *AppStruct) NoAuthApiUserLogout() {
-	userToken := utils.GinGetCookie(app.Context, "user_token")
-	if userToken != "" {
-		apiFile := utils.CacheDir(fmt.Sprintf("/users/%s", userToken))
-		if utils.IsFile(apiFile) {
-			_ = os.Remove(apiFile)
-		}
-	}
 	utils.GinRemoveCookie(app.Context, "user_token")
 	utils.GinResult(app.Context, http.StatusOK, "退出成功")
 }

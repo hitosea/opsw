@@ -20,8 +20,12 @@ var execCmd = &cobra.Command{
 	Use:   "exec",
 	Short: "远程执行命令",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		if !utils.CheckOs() {
+			utils.PrintError("暂不支持的操作系统")
+			os.Exit(1)
+		}
 		if len(cfg.Host) == 0 || cfg.Cmd == "" {
-			utils.PrintError("host/cmd required.")
+			utils.PrintError("必须填写：host、cmd")
 			os.Exit(0)
 		}
 		ip := cfg.Host
@@ -31,7 +35,7 @@ var execCmd = &cobra.Command{
 			port = ipport[1]
 		}
 		if utils.StringToIP(ip) == nil {
-			utils.PrintError(fmt.Sprintf("ip [%s] is invalid", ip))
+			utils.PrintError(fmt.Sprintf("ip[%s]无效", ip))
 			os.Exit(1)
 		}
 		cfg.Host = fmt.Sprintf("%s:%s", ip, port)
@@ -64,33 +68,34 @@ func execStart() {
 	logger.Info("---------- exec start ----------")
 
 	key := utils.GenerateString(32)
-	err := cfg.SSHConfig.SaveFileAndChmodX(cfg.Host, fmt.Sprintf("/tmp/.exec_%s", key), utils.Shell("/exec.sh", map[string]any{
+	cmdFile := utils.CacheDir("/tmp/.exec_%s", key)
+	resFile := utils.CacheDir("/tmp/.exec_%s_result", key)
+	err := cfg.SSHConfig.SaveFileAndChmodX(cfg.Host, cmdFile, utils.Shell("/exec.sh", map[string]any{
 		"CMD":      cfg.Cmd,
 		"END_TAG":  "success",
-		"END_PATH": fmt.Sprintf("/tmp/.exec_%s_result", key),
+		"END_PATH": resFile,
 	}))
 	if err != nil {
 		response(err)
 		return
 	}
 
-	err = cfg.SSHConfig.CmdAsync(cfg.Host, fmt.Sprintf("sudo /tmp/.exec_%s %s", key, cfg.Param))
+	err = cfg.SSHConfig.CmdAsync(cfg.Host, fmt.Sprintf("sudo %s %s", cmdFile, cfg.Param))
 	if err != nil {
 		response(err)
 		return
 	}
 
-	result := cfg.SSHConfig.CmdToStringNoLog(cfg.Host, fmt.Sprintf("cat /tmp/.exec_%s_result", key), "")
+	result := cfg.SSHConfig.CmdToStringNoLog(cfg.Host, fmt.Sprintf("cat %s", resFile), "")
 	if result != "success" {
-		response(fmt.Errorf("result error"))
+		response(fmt.Errorf("结果错误"))
 		return
 	}
 
 	response(nil)
 
-	_ = cfg.SSHConfig.CmdAsync(cfg.Host, fmt.Sprintf("rm -f /tmp/.exec_%s", key))
-	_ = cfg.SSHConfig.CmdAsync(cfg.Host, fmt.Sprintf("rm -f /tmp/.exec_%s_result", key))
-	_ = cfg.SSHConfig.CmdAsync(cfg.Host, fmt.Sprintf("rm -f /tmp/.exec_%s_content", key))
+	_ = cfg.SSHConfig.CmdAsync(cfg.Host, fmt.Sprintf("rm -f %s", cmdFile))
+	_ = cfg.SSHConfig.CmdAsync(cfg.Host, fmt.Sprintf("rm -f %s", resFile))
 }
 
 func response(err error) {
