@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"fmt"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"opsw/database"
 	"opsw/utils"
@@ -19,7 +19,7 @@ func (app *AppStruct) NoAuthApiUserLogin() {
 	}
 	user, err := database.UserCheck(email, password)
 	if err != nil {
-		utils.GinResult(app.Context, http.StatusBadRequest, fmt.Sprintf("登录失败：%s", err.Error()))
+		utils.GinResult(app.Context, http.StatusBadRequest, "登录失败", gin.H{"error": err.Error()})
 		return
 	}
 	utils.GinSetCookie(app.Context, "user_token", user.Token, 30*24*86400)
@@ -43,7 +43,7 @@ func (app *AppStruct) NoAuthApiUserReg() {
 	}
 	user, err := database.UserCreate(email, "", password)
 	if err != nil {
-		utils.GinResult(app.Context, http.StatusBadRequest, fmt.Sprintf("注册失败：%s", err.Error()))
+		utils.GinResult(app.Context, http.StatusBadRequest, "注册失败", gin.H{"error": err.Error()})
 		return
 	}
 	utils.GinSetCookie(app.Context, "user_token", user.Token, 30*24*86400)

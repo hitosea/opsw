@@ -62,7 +62,7 @@ var runCommand = &cobra.Command{
 		router.Any("/*path", func(context *gin.Context) {
 			app := routes.AppStruct{
 				Context:  context,
-				UserInfo: &vars.UserModel{},
+				UserInfo: &database.User{},
 			}
 			app.Entry()
 		})

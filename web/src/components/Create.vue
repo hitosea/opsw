@@ -21,7 +21,7 @@
             <n-input v-model:value="formData.port" placeholder="SSH登录端口，默认：22"/>
         </n-form-item>
         <n-form-item v-show="advancedShow" path="remark" label="备注">
-            <n-input v-model:value="formData.remark"/>
+            <n-input v-model:value="formData.remark" placeholder=""/>
         </n-form-item>
         <n-row :gutter="[0, 24]">
             <n-col :span="24">
@@ -29,7 +29,7 @@
                     <n-button round quaternary type="default" @click="advancedShow=!advancedShow">
                         {{advancedShow ? '收起' : '高级选项'}}
                     </n-button>
-                    <n-button :loading="loadIng" round type="primary" @click="handleSubmit">
+                    <n-button :loading="loadIng > 0" round type="primary" @click="handleSubmit">
                         添加
                     </n-button>
                 </div>
@@ -69,8 +69,7 @@ interface ModelType {
 export default defineComponent({
     setup(props, {emit}) {
         const message = useMessage()
-        const dialog = useDialog()
-        const loadIng = ref<boolean>(false)
+        const loadIng = ref<number>(0)
         const formRef = ref<FormInst | null>(null)
         const formData = ref<ModelType>({
             ips: "",
@@ -125,15 +124,31 @@ export default defineComponent({
                     return;
                 }
                 //
-                if (loadIng.value) {
+                if (loadIng.value > 0) {
                     return
                 }
-                loadIng.value = true
-                call.post('server/create', formData.value).then(({msg}) => {
-                    message.success(msg);
-                    emit('onDone')
-                }).catch(call.dialog).finally(() => {
-                    loadIng.value = false
+                const data = utils.cloneJSON(formData.value)
+                let ips: any = data.ips
+                delete data.ips
+                if (!utils.isArray(ips)) {
+                    ips = [ips]
+                }
+                ips.forEach(ip => {
+                    loadIng.value++
+                    call.post('server/create', Object.assign(data, {ip}))
+                        .then(({msg}) => {
+                            loadIng.value--
+                            if (loadIng.value === 0) {
+                                message.success(msg)
+                                emit('onDone')
+                            }
+                        })
+                        .catch(res => {
+                            loadIng.value--
+                            if (loadIng.value === 0) {
+                                call.dialog(res)
+                            }
+                        })
                 })
             })
         }

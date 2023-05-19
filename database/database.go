@@ -8,7 +8,6 @@ import (
 	"opsw/utils"
 	"opsw/vars"
 	"strings"
-	"time"
 )
 
 func InDB(str string) (*gorm.DB, error) {
@@ -26,7 +25,7 @@ func InDB(str string) (*gorm.DB, error) {
 	}
 }
 
-func closeDB(db *gorm.DB) {
+func CloseDB(db *gorm.DB) {
 	if sqlDB, err := db.DB(); err == nil {
 		_ = sqlDB.Close()
 	}
@@ -37,13 +36,13 @@ func Init() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer closeDB(db)
+	defer CloseDB(db)
 	//
 	autoIncrement := "AUTOINCREMENT"
 	if strings.HasPrefix(strings.ToLower(vars.Config.DB), "mysql") {
 		autoIncrement = "AUTO_INCREMENT"
 	}
-	sqls := utils.Sql("/database.sql", autoIncrement)
+	sqls := utils.Sql("/install.sql", autoIncrement)
 	for _, s := range sqls {
 		err = db.Exec(s).Error
 		if err != nil {
@@ -53,28 +52,22 @@ func Init() (*gorm.DB, error) {
 	return db, err
 }
 
-func UserGet(query any) (*vars.UserModel, error) {
+func UserGet(query any) (*User, error) {
 	db, err := InDB(vars.Config.DB)
 	if err != nil {
 		return nil, err
 	}
-	defer closeDB(db)
+	defer CloseDB(db)
 	//
-	var userData *vars.UserModel
-	db.Table("users").Where(query).Last(&userData)
-	if userData.ID == 0 {
+	var user *User
+	db.Where(query).Last(&user)
+	if user.Id == 0 {
 		return nil, errors.New("用户不存在")
 	}
-	return userData, nil
+	return user, nil
 }
 
-func UserCheck(email, password string) (*vars.UserModel, error) {
-	db, err := InDB(vars.Config.DB)
-	if err != nil {
-		return nil, err
-	}
-	defer closeDB(db)
-	//
+func UserCheck(email, password string) (*User, error) {
 	user, err := UserGet(map[string]any{
 		"email": email,
 	})
@@ -87,35 +80,33 @@ func UserCheck(email, password string) (*vars.UserModel, error) {
 	return user, nil
 }
 
-func UserCreate(email, name, password string) (*vars.UserModel, error) {
+func UserCreate(email, name, password string) (*User, error) {
 	db, err := InDB(vars.Config.DB)
 	if err != nil {
 		return nil, err
 	}
-	defer closeDB(db)
+	defer CloseDB(db)
 	//
-	var userData *vars.UserModel
-	db.Table("users").Where(map[string]any{
+	var user *User
+	db.Where(map[string]any{
 		"email": email,
-	}).Last(&userData)
-	if userData.ID > 0 {
+	}).Last(&user)
+	if user.Id > 0 {
 		return nil, errors.New("邮箱地址已存在")
 	}
 	//
 	encrypt := utils.GenerateString(6)
-	user := &vars.UserModel{
-		Email:     email,
-		Name:      name,
-		Encrypt:   encrypt,
-		Password:  utils.StringMd52(password, encrypt),
-		Token:     utils.GenerateString(32),
-		Avatar:    "",
-		CreatedAt: uint32(time.Now().Unix()),
-		UpdatedAt: uint32(time.Now().Unix()),
+	user = &User{
+		Email:    email,
+		Name:     name,
+		Encrypt:  encrypt,
+		Password: utils.StringMd52(password, encrypt),
+		Token:    utils.GenerateString(32),
+		Avatar:   "",
 	}
-	result := db.Table("users").Create(&user)
-	if result.Error != nil {
-		return nil, result.Error
+	err = db.Create(&user).Error
+	if err != nil {
+		return nil, err
 	}
 	return user, nil
 }

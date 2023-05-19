@@ -8,14 +8,13 @@ import (
 	"net/http"
 	"opsw/database"
 	"opsw/utils"
-	"opsw/vars"
 	"reflect"
 	"strings"
 )
 
 type AppStruct struct {
 	Context  *gin.Context
-	UserInfo *vars.UserModel
+	UserInfo *database.User
 }
 
 func (app *AppStruct) Entry() {
