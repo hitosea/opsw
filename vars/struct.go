@@ -23,12 +23,13 @@ type ExecStruct struct {
 }
 
 type WsClientStruct struct {
-	Conn   *websocket.Conn `json:"conn"`
-	UserId int32           `json:"user_id"`
-	RandId string          `json:"rand_id"`
+	Conn *websocket.Conn `json:"conn"`
+	Type string          `json:"type"` // 用户类型：user、server
+	Uid  int32           `json:"uid"`  // 用户ID、服务器ID
+	Rid  string          `json:"rid"`  // 用户随机ID
 }
 
 type WsMsgStruct struct {
-	State int `json:"state"`
-	Data  any `json:"data"`
+	Type int `json:"type"`
+	Data any `json:"data"`
 }
