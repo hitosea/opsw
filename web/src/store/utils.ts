@@ -5,6 +5,14 @@ localforage.config({name: 'web', storeName: 'common'});
 
 const utils = {
     /**
+     * 简单判断IPv4地址
+     * @param value
+     */
+    isIpv4(value: string) {
+        return /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.test(value)
+    },
+
+    /**
      * 判断是否为空
      * @param name
      */

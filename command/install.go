@@ -11,7 +11,7 @@ var cmdFile string
 
 var installCommand = &cobra.Command{
 	Use:   "install",
-	Short: "安装服务",
+	Short: "安装服务", // todo
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmdFile = utils.CacheDir("/install/cmd")
 		//
@@ -19,7 +19,7 @@ var installCommand = &cobra.Command{
 			utils.PrintError("暂不支持的操作系统")
 			os.Exit(1)
 		}
-		err := utils.WriteFile(cmdFile, utils.Assets("/install.sh", map[string]any{}))
+		err := utils.WriteFile(cmdFile, utils.Shell("/install.sh", map[string]any{}))
 		if err != nil {
 			utils.PrintError(fmt.Sprintf("保存安装文件失败：%s", err.Error()))
 			os.Exit(1)

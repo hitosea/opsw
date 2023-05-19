@@ -54,7 +54,8 @@
     .header-menu {
         .wrapper {
             .n-menu-item-content {
-                padding: 2px 20px 0 0;
+                padding: 0;
+                margin: 2px 20px 0 0;
             }
         }
     }

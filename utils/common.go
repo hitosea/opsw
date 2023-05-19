@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -203,6 +204,14 @@ func IntToIP(i *big.Int) net.IP {
 
 func StringToIP(i string) net.IP {
 	return net.ParseIP(i).To4()
+}
+
+func GetIpAndPort(ip string) (string, string) {
+	if strings.Contains(ip, ":") {
+		arr := strings.Split(ip, ":")
+		return arr[0], arr[1]
+	}
+	return ip, "22"
 }
 
 func Base64Encode(data string) string {
