@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-var cfg = &vars.ExecStruct{}
+var execConf = &vars.ExecStruct{}
 
 // execCmd represents the exec command
 var execCmd = &cobra.Command{
@@ -24,13 +24,13 @@ var execCmd = &cobra.Command{
 			utils.PrintError("暂不支持的操作系统")
 			os.Exit(1)
 		}
-		if len(cfg.Host) == 0 || cfg.Cmd == "" {
+		if len(execConf.Host) == 0 || execConf.Cmd == "" {
 			utils.PrintError("必须填写：host、cmd")
 			os.Exit(0)
 		}
-		ip := cfg.Host
+		ip := execConf.Host
 		port := "22"
-		if ipport := strings.Split(cfg.Host, ":"); len(ipport) == 2 {
+		if ipport := strings.Split(execConf.Host, ":"); len(ipport) == 2 {
 			ip = ipport[0]
 			port = ipport[1]
 		}
@@ -38,21 +38,21 @@ var execCmd = &cobra.Command{
 			utils.PrintError(fmt.Sprintf("ip[%s]无效", ip))
 			os.Exit(1)
 		}
-		cfg.Host = fmt.Sprintf("%s:%s", ip, port)
-		if cfg.SSHConfig.User == "" {
-			cfg.SSHConfig.User = "root"
+		execConf.Host = fmt.Sprintf("%s:%s", ip, port)
+		if execConf.SSHConfig.User == "" {
+			execConf.SSHConfig.User = "root"
 		}
-		if cfg.SSHConfig.Password != "" {
-			cfg.SSHConfig.Password = utils.Base64Decode(cfg.SSHConfig.Password)
+		if execConf.SSHConfig.Password != "" {
+			execConf.SSHConfig.Password = utils.Base64Decode(execConf.SSHConfig.Password)
 		}
-		if cfg.SSHConfig.PkFile != "" {
-			cfg.SSHConfig.PkPassword = cfg.SSHConfig.Password
+		if execConf.SSHConfig.PkFile != "" {
+			execConf.SSHConfig.PkPassword = execConf.SSHConfig.Password
 		}
-		if len(cfg.Cmd) > 0 {
-			cfg.Cmd = utils.Base64Decode(cfg.Cmd)
+		if len(execConf.Cmd) > 0 {
+			execConf.Cmd = utils.Base64Decode(execConf.Cmd)
 		}
-		if len(cfg.Param) > 0 {
-			cfg.Param = utils.Base64Decode(cfg.Param)
+		if len(execConf.Param) > 0 {
+			execConf.Param = utils.Base64Decode(execConf.Param)
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -61,8 +61,8 @@ var execCmd = &cobra.Command{
 }
 
 func execStart() {
-	if len(cfg.LogFile) > 0 {
-		_ = logger.SetLogger(fmt.Sprintf(`{"File":{"filename":"%s","level":"TRAC","daily":true,"maxlines":100000,"maxsize":10,"maxdays":3,"append":true,"permit":"0660"}}`, cfg.LogFile))
+	if len(execConf.LogFile) > 0 {
+		_ = logger.SetLogger(fmt.Sprintf(`{"File":{"filename":"%s","level":"TRAC","daily":true,"maxlines":100000,"maxsize":10,"maxdays":3,"append":true,"permit":"0660"}}`, execConf.LogFile))
 	}
 
 	logger.Info("---------- exec start ----------")
@@ -70,8 +70,8 @@ func execStart() {
 	key := utils.GenerateString(32)
 	cmdFile := utils.CacheDir("/tmp/.exec_%s", key)
 	resFile := utils.CacheDir("/tmp/.exec_%s_result", key)
-	err := cfg.SSHConfig.SaveFileAndChmodX(cfg.Host, cmdFile, utils.Shell("/exec.sh", map[string]any{
-		"CMD":      cfg.Cmd,
+	err := execConf.SSHConfig.SaveFileAndChmodX(execConf.Host, cmdFile, utils.Shell("/exec.sh", map[string]any{
+		"CMD":      execConf.Cmd,
 		"END_TAG":  "success",
 		"END_PATH": resFile,
 	}))
@@ -80,13 +80,13 @@ func execStart() {
 		return
 	}
 
-	err = cfg.SSHConfig.CmdAsync(cfg.Host, fmt.Sprintf("sudo %s %s", cmdFile, cfg.Param))
+	err = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("sudo %s %s", cmdFile, execConf.Param))
 	if err != nil {
 		response(err)
 		return
 	}
 
-	result := cfg.SSHConfig.CmdToStringNoLog(cfg.Host, fmt.Sprintf("cat %s", resFile), "")
+	result := execConf.SSHConfig.CmdToStringNoLog(execConf.Host, fmt.Sprintf("cat %s", resFile), "")
 	if result != "success" {
 		response(fmt.Errorf("结果错误"))
 		return
@@ -94,8 +94,8 @@ func execStart() {
 
 	response(nil)
 
-	_ = cfg.SSHConfig.CmdAsync(cfg.Host, fmt.Sprintf("rm -f %s", cmdFile))
-	_ = cfg.SSHConfig.CmdAsync(cfg.Host, fmt.Sprintf("rm -f %s", resFile))
+	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", cmdFile))
+	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", resFile))
 }
 
 func response(err error) {
@@ -106,9 +106,9 @@ func response(err error) {
 		errorMsg = err.Error()
 	}
 
-	if strings.HasPrefix(cfg.Url, "http://") || strings.HasPrefix(cfg.Url, "https://") {
+	if strings.HasPrefix(execConf.Url, "http://") || strings.HasPrefix(execConf.Url, "https://") {
 		logger.Info("---------- callback start ----------")
-		ip, _ := utils.GetIpAndPort(cfg.Host)
+		ip, _ := utils.GetIpAndPort(execConf.Host)
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 		_, err := gohttp.NewRequest().
 			FormData(map[string]string{
@@ -117,7 +117,7 @@ func response(err error) {
 				"error":     errorMsg,
 				"timestamp": timestamp,
 			}).
-			Post(cfg.Url)
+			Post(execConf.Url)
 		if err != nil {
 			logger.Info("---------- callback error ----------")
 		} else {
@@ -130,12 +130,12 @@ func response(err error) {
 
 func init() {
 	rootCommand.AddCommand(execCmd)
-	execCmd.Flags().StringVar(&cfg.Host, "host", "", "服务器IP: 192.168.0.5 or 192.168.0.5:22")
-	execCmd.Flags().StringVar(&cfg.SSHConfig.User, "user", "root", "用户名，默认: root")
-	execCmd.Flags().StringVar(&cfg.SSHConfig.Password, "password", "", "密码, 必须经过base64编码（如果设置pkfile，则为pkfile的密码）")
-	execCmd.Flags().StringVar(&cfg.SSHConfig.PkFile, "pkfile", "", "密钥路径，如果设置，则使用密钥登录")
-	execCmd.Flags().StringVar(&cfg.Cmd, "cmd", "", "执行的命令, 必须经过base64编码")
-	execCmd.Flags().StringVar(&cfg.Param, "param", "", "参数, 必须经过base64编码")
-	execCmd.Flags().StringVar(&cfg.Url, "url", "", "回调地址, 必须以 \"http://\" or \"https://\" 前缀")
-	execCmd.Flags().StringVar(&cfg.LogFile, "log", "", "日志文件路径")
+	execCmd.Flags().StringVar(&execConf.Host, "host", "", "服务器IP: 192.168.0.5 or 192.168.0.5:22")
+	execCmd.Flags().StringVar(&execConf.SSHConfig.User, "user", "root", "用户名，默认: root")
+	execCmd.Flags().StringVar(&execConf.SSHConfig.Password, "password", "", "密码, 必须经过base64编码（如果设置pkfile，则为pkfile的密码）")
+	execCmd.Flags().StringVar(&execConf.SSHConfig.PkFile, "pkfile", "", "密钥路径，如果设置，则使用密钥登录")
+	execCmd.Flags().StringVar(&execConf.Cmd, "cmd", "", "执行的命令, 必须经过base64编码")
+	execCmd.Flags().StringVar(&execConf.Param, "param", "", "参数, 必须经过base64编码")
+	execCmd.Flags().StringVar(&execConf.Url, "url", "", "回调地址, 必须以 \"http://\" or \"https://\" 前缀")
+	execCmd.Flags().StringVar(&execConf.LogFile, "log", "", "日志文件路径")
 }

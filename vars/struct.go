@@ -22,6 +22,11 @@ type ExecStruct struct {
 	SSHConfig sshutil.SSH
 }
 
+type WorkStruct struct {
+	Url  string
+	Mode string
+}
+
 type WsClientStruct struct {
 	Conn *websocket.Conn `json:"conn"`
 	Type string          `json:"type"` // 用户类型：user、server
