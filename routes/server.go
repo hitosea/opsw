@@ -37,6 +37,7 @@ func (app *AppStruct) AuthApiServerCreate() {
 	defer database.CloseDB(db)
 	//
 	var server = &database.Server{}
+	var serverUser = &database.ServerUser{}
 	db.Where(map[string]any{
 		"ip": ip,
 	}).Last(&server)
@@ -50,19 +51,20 @@ func (app *AppStruct) AuthApiServerCreate() {
 		Password: password,
 		Port:     port,
 		Remark:   remark,
-		State:    "Creating",
+		State:    "Installing",
 		Token:    utils.Base64Encode("s:%s", utils.GenerateString(22)),
+	}
+	serverUser = &database.ServerUser{
+		UserId:  app.UserInfo.Id,
+		OwnerId: app.UserInfo.Id,
 	}
 	err = db.Transaction(func(tx *gorm.DB) error {
 		err = tx.Create(server).Error
 		if err != nil {
 			return err
 		}
-		err = tx.Create(&database.ServerUser{
-			ServerId: server.Id,
-			UserId:   app.UserInfo.Id,
-			OwnerId:  app.UserInfo.Id,
-		}).Error
+		serverUser.ServerId = server.Id
+		err = tx.Create(serverUser).Error
 		if err != nil {
 			return err
 		}

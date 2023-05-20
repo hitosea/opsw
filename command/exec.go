@@ -15,7 +15,6 @@ import (
 
 var execConf = &vars.ExecStruct{}
 
-// execCmd represents the exec command
 var execCmd = &cobra.Command{
 	Use:   "exec",
 	Short: "远程执行命令",

@@ -23,8 +23,9 @@ type ExecStruct struct {
 }
 
 type WorkStruct struct {
-	Url  string
-	Mode string
+	Url   string
+	Mode  string
+	Token string
 }
 
 type WsClientStruct struct {
