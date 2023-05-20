@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	wsMsg      = vars.WsMsgStruct{}
 	wsMutex    = sync.Mutex{}
 	wsUpgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -60,85 +59,102 @@ func (app *AppStruct) NoAuthWs() {
 	}()
 	// 添加客户端（上线）
 	app.wsOnlineClients(client)
-	replyByte, _ := json.Marshal(map[string]any{
+	sendMsg, _ := json.Marshal(map[string]any{
 		"type": wsOnline,
 		"data": map[string]any{
 			"type": client.Type,
 			"uid":  client.Uid,
 			"rid":  client.Rid,
+			"own":  1,
 		},
 	})
-	_ = conn.WriteMessage(websocket.TextMessage, replyByte)
+	_ = conn.WriteMessage(websocket.TextMessage, sendMsg)
 	// 循环读取客户端发送的消息
 	for {
 		// 读取客户端发送过来的消息，如果没发就会一直阻塞住
-		_, msg, err := conn.ReadMessage()
+		_, message, err := conn.ReadMessage()
 		if err != nil {
 			app.wsOfflineClients(client.Rid)
 			break
 		}
-		err = json.Unmarshal(msg, &wsMsg)
+		var msg vars.WsMsgStruct
+		err = json.Unmarshal(message, &msg)
 		if err != nil {
 			continue
 		}
-		if wsMsg.Data == nil {
-			wsMsg.Data = make(map[string]any)
+		if msg.Data == nil {
+			msg.Data = make(map[string]any)
 		}
-		replyByte = nil
-		if wsMsg.Type == wsHeartbeat {
+		if msg.Type == wsHeartbeat {
 			// 心跳消息
-			replyByte, _ = json.Marshal(map[string]any{
+			sendMsg, _ = json.Marshal(map[string]any{
 				"type": wsHeartbeat,
 			})
-		} else if client.Type == "user" {
+			_ = conn.WriteMessage(websocket.TextMessage, sendMsg)
+			continue
+		}
+		if client.Type == "user" {
 			// 用户消息
-			if wsMsg.Type == wsSendMsg {
-				// 消息发送
-				toType, _ := wsMsg.Data.(map[string]any)["to_type"].(string) // 客户端类型
-				toUid, _ := wsMsg.Data.(map[string]any)["to_uid"].(float64)  // 发送给谁
-				msgData, _ := wsMsg.Data.(map[string]any)["msg_data"].(any)  // 消息内容
-				if toUid == 0 || msgData == nil {
-					continue
-				}
-				if toType == "" {
-					toType = "user"
-				}
-				sendByte, _ := json.Marshal(map[string]any{
-					"type": wsSendMsg,
-					"data": msgData,
-				})
-				for _, v := range vars.WsClients {
-					if v.Type == toType && v.Uid == int32(toUid) {
-						_ = v.Conn.WriteMessage(websocket.TextMessage, sendByte)
-					}
-				}
-			} else if wsMsg.Type == wsOnlineClient {
-				// 在线客户端
-				var list []map[string]any
-				for _, v := range vars.WsClients {
-					list = append(list, map[string]any{
-						"type": v.Type,
-						"uid":  v.Uid,
-						"rid":  v.Rid,
-					})
-				}
-				replyByte, _ = json.Marshal(map[string]any{
-					"type": wsOnlineClient,
-					"data": map[string]any{
-						"count": len(list),
-						"list":  list,
-					},
-				})
-			}
+			app.wsHandleUserMsg(conn, msg)
 		} else if client.Type == "server" {
 			// 服务器消息
-		}
-		if replyByte != nil {
-			_ = conn.WriteMessage(websocket.TextMessage, replyByte)
+			app.wsHandleServerMsg(conn, msg)
 		}
 	}
 }
 
+// 处理用户消息
+func (app *AppStruct) wsHandleUserMsg(conn *websocket.Conn, msg vars.WsMsgStruct) {
+	var replyMsg []byte
+	if msg.Type == wsSendMsg {
+		// 消息发送
+		toType, _ := msg.Data.(map[string]any)["to_type"].(string) // 客户端类型
+		toUid, _ := msg.Data.(map[string]any)["to_uid"].(float64)  // 发送给谁
+		msgData, _ := msg.Data.(map[string]any)["msg_data"].(any)  // 消息内容
+		if toUid == 0 || msgData == nil {
+			return
+		}
+		if toType == "" {
+			toType = "user"
+		}
+		sendMsg, _ := json.Marshal(map[string]any{
+			"type": wsSendMsg,
+			"data": msgData,
+		})
+		for _, v := range vars.WsClients {
+			if v.Type == toType && v.Uid == int32(toUid) {
+				_ = v.Conn.WriteMessage(websocket.TextMessage, sendMsg)
+			}
+		}
+	} else if msg.Type == wsOnlineClient {
+		// 在线客户端
+		var list []map[string]any
+		for _, v := range vars.WsClients {
+			list = append(list, map[string]any{
+				"type": v.Type,
+				"uid":  v.Uid,
+				"rid":  v.Rid,
+			})
+		}
+		replyMsg, _ = json.Marshal(map[string]any{
+			"type": wsOnlineClient,
+			"data": map[string]any{
+				"count": len(list),
+				"list":  list,
+			},
+		})
+	}
+	if replyMsg != nil {
+		_ = conn.WriteMessage(websocket.TextMessage, replyMsg)
+	}
+}
+
+// 处理服务器消息
+func (app *AppStruct) wsHandleServerMsg(conn *websocket.Conn, msg vars.WsMsgStruct) {
+
+}
+
+// 客户端上线
 func (app *AppStruct) wsOnlineClients(client vars.WsClientStruct) {
 	for _, v := range vars.WsClients {
 		if v.Rid == client.Rid {
@@ -158,6 +174,7 @@ func (app *AppStruct) wsOnlineClients(client vars.WsClientStruct) {
 	})
 }
 
+// 客户端离线
 func (app *AppStruct) wsOfflineClients(rid string) {
 	for k, client := range vars.WsClients {
 		if client.Rid == rid {
@@ -179,14 +196,15 @@ func (app *AppStruct) wsOfflineClients(rid string) {
 	}
 }
 
+// 通知客户端
 func (app *AppStruct) wsNotifyClients(rid string, msgData vars.WsMsgStruct) {
-	sendByte, err := json.Marshal(msgData)
+	sendMsg, err := json.Marshal(msgData)
 	if err != nil {
 		return
 	}
 	for _, client := range vars.WsClients {
 		if client.Rid != rid {
-			_ = client.Conn.WriteMessage(websocket.TextMessage, sendByte)
+			_ = client.Conn.WriteMessage(websocket.TextMessage, sendMsg)
 		}
 	}
 }
