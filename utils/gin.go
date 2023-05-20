@@ -7,6 +7,18 @@ import (
 	"strings"
 )
 
+// GinToken Gin获取Token（Header、Query、Cookie）
+func GinToken(c *gin.Context) string {
+	token := c.GetHeader("token")
+	if token == "" {
+		token = GinInput(c, "token")
+	}
+	if token == "" {
+		token = GinGetCookie(c, "token")
+	}
+	return token
+}
+
 // GinInput Gin获取参数（优先POST、取Query）
 func GinInput(c *gin.Context, key string) string {
 	if c.PostForm(key) != "" {

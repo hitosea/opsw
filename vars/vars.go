@@ -1,5 +1,6 @@
 package vars
 
 var (
-	Config ConfStruct
+	Config    ConfStruct
+	WsClients []WsClientStruct
 )

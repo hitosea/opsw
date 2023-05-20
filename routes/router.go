@@ -13,8 +13,9 @@ import (
 )
 
 type AppStruct struct {
-	Context  *gin.Context
-	UserInfo *database.User
+	Context    *gin.Context
+	UserInfo   *database.User
+	ServerInfo *database.Server
 }
 
 func (app *AppStruct) Entry() {
@@ -30,18 +31,18 @@ func (app *AppStruct) Entry() {
 		return
 	}
 	// 读取身份
-	app.UserInfo.Token = utils.GinInput(app.Context, "token")
-	if app.UserInfo.Token == "" {
-		app.UserInfo.Token = utils.GinGetCookie(app.Context, "token")
-	}
-	if app.UserInfo.Token != "" {
-		userInfo, err := database.UserGet(map[string]any{
-			"token": app.UserInfo.Token,
-		})
-		if err != nil {
-			app.UserInfo.Token = ""
-		} else {
-			app.UserInfo = userInfo
+	token := utils.GinToken(app.Context)
+	if strings.HasPrefix(utils.Base64Decode(token), "u:") {
+		if info, err := database.UserGet(map[string]any{
+			"token": token,
+		}); err == nil {
+			app.UserInfo = info
+		}
+	} else if strings.HasPrefix(utils.Base64Decode(token), "s:") {
+		if info, err := database.ServerGet(map[string]any{
+			"token": token,
+		}); err == nil {
+			app.ServerInfo = info
 		}
 	}
 	// 动态路由（不需要登录）

@@ -51,7 +51,7 @@ func (app *AppStruct) AuthApiServerCreate() {
 		Port:     port,
 		Remark:   remark,
 		State:    "Creating",
-		Token:    utils.GenerateString(32),
+		Token:    utils.Base64Encode("s:%s", utils.GenerateString(22)),
 	}
 	err = db.Transaction(func(tx *gorm.DB) error {
 		err = tx.Create(server).Error

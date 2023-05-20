@@ -214,7 +214,10 @@ func GetIpAndPort(ip string) (string, string) {
 	return ip, "22"
 }
 
-func Base64Encode(data string) string {
+func Base64Encode(data string, a ...any) string {
+	if len(a) > 0 {
+		data = fmt.Sprintf(data, a...)
+	}
 	sEnc := base64.RawURLEncoding.EncodeToString([]byte(data))
 	return fmt.Sprintf(sEnc)
 }

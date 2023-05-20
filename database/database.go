@@ -101,7 +101,7 @@ func UserCreate(email, name, password string) (*User, error) {
 		Name:     name,
 		Encrypt:  encrypt,
 		Password: utils.StringMd52(password, encrypt),
-		Token:    utils.GenerateString(32),
+		Token:    utils.Base64Encode("u:%s", utils.GenerateString(22)),
 		Avatar:   "",
 	}
 	err = db.Create(&user).Error
@@ -109,4 +109,19 @@ func UserCreate(email, name, password string) (*User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func ServerGet(query any) (*Server, error) {
+	db, err := InDB(vars.Config.DB)
+	if err != nil {
+		return nil, err
+	}
+	defer CloseDB(db)
+	//
+	var server *Server
+	db.Where(query).Last(&server)
+	if server.Id == 0 {
+		return nil, errors.New("服务器不存在")
+	}
+	return server, nil
 }
