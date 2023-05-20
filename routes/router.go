@@ -71,6 +71,7 @@ func urlToName(urlPath string) string {
 		urlPath = strings.ReplaceAll(urlPath, "/", " ")
 		urlPath = strings.ReplaceAll(urlPath, "_", " ")
 		urlPath = strings.ReplaceAll(urlPath, "-", " ")
+		urlPath = strings.ReplaceAll(urlPath, ".", " ")
 		urlPath = strings.ReplaceAll(caser.String(urlPath), " ", "")
 	}
 	if urlPath == "Entry" {

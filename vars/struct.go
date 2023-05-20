@@ -26,6 +26,7 @@ type WorkStruct struct {
 	Url   string
 	Mode  string
 	Token string
+	Conf  string
 }
 
 type WsClientStruct struct {

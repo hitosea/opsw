@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/togettoyou/wsc"
 	"opsw/utils"
 	"opsw/utils/logger"
@@ -23,6 +24,15 @@ var workCmd = &cobra.Command{
 	Use:   "work",
 	Short: "启动工作模式",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		if workConf.Conf != "" && utils.IsFile(workConf.Conf) {
+			viper.SetConfigFile(workConf.Conf)
+			err := viper.ReadInConfig()
+			if err == nil {
+				workConf.Url = viper.GetString("url")
+				workConf.Mode = viper.GetString("mode")
+				workConf.Token = viper.GetString("token")
+			}
+		}
 		if workConf.Url == "" {
 			utils.PrintError("请填写服务端url")
 			os.Exit(0)
@@ -144,4 +154,5 @@ func init() {
 	workCmd.Flags().StringVar(&workConf.Url, "url", "", "服务端url")
 	workCmd.Flags().StringVar(&workConf.Mode, "mode", "", "客户端类型")
 	workCmd.Flags().StringVar(&workConf.Token, "token", "", "客户端token")
+	workCmd.Flags().StringVar(&workConf.Conf, "conf", "", "配置文件路径")
 }

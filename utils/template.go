@@ -77,5 +77,7 @@ func Template(templateContent string, envMap map[string]interface{}) string {
 	envMap["CACHE_PATH"] = CacheDir("")
 	var buffer bytes.Buffer
 	_ = tmpl.Execute(&buffer, envMap)
-	return string(buffer.Bytes())
+	content := string(buffer.Bytes())
+	content = strings.ReplaceAll(content, "<no value>", "")
+	return content
 }
