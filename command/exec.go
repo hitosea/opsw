@@ -63,8 +63,6 @@ func execStart() {
 		_ = logger.SetLogger(fmt.Sprintf(`{"File":{"filename":"%s","level":"TRAC","daily":true,"maxlines":100000,"maxsize":10,"maxdays":3,"append":true,"permit":"0660"}}`, execConf.LogFile))
 	}
 
-	logger.Info("---------- exec start ----------")
-
 	key := utils.GenerateString(32)
 	cmdFile := fmt.Sprintf("/tmp/.exec_%s", key)
 	resFile := fmt.Sprintf("/tmp/.exec_%s_result", key)
@@ -116,7 +114,6 @@ func response(err error) {
 	}
 
 	if strings.HasPrefix(execConf.Url, "http://") || strings.HasPrefix(execConf.Url, "https://") {
-		logger.Info("---------- callback start ----------")
 		ip, _ := utils.GetIpAndPort(execConf.Host)
 		_, err := gohttp.NewRequest().
 			FormData(map[string]string{
@@ -127,13 +124,9 @@ func response(err error) {
 			}).
 			Post(execConf.Url)
 		if err != nil {
-			logger.Info("---------- callback error ----------")
-		} else {
-			logger.Info("---------- callback end ----------")
+			logger.Info("请求回调失败：%s", err.Error())
 		}
 	}
-
-	logger.Info("---------- exec end ----------")
 }
 
 func init() {

@@ -51,7 +51,7 @@
                                 </div>
                                 <div class="release">{{ systemsFormat(item['systems'], 'release') }}</div>
                                 <div class="state">
-                                    <div v-if="stateJudge(item, 'Running')" class="run">
+                                    <div v-if="stateJudge(item, 'Online')" class="run">
                                         <n-badge type="success" show-zero dot />
                                     </div>
                                     <div v-else-if="stateJudge(item, 'Offline')" class="run">
@@ -289,15 +289,11 @@ export default defineComponent({
         }
         const stateLoading = (item) => {
             const state = stateText(item)
-            return state.slice(-3) === 'ing' && state != "Running"
+            return state.slice(-3) === 'ing'
         }
         const stateStyle = (item) => {
             const state = stateText(item)
             switch (state) {
-                case 'Success':
-                    return {
-                        color: 'rgb(82,196,26)'
-                    }
                 case 'Failed':
                     return {
                         color: 'rgb(248,113,113)'

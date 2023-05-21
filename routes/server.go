@@ -84,8 +84,8 @@ func (app *AppStruct) AuthApiServerCreate() {
 	}
 }
 
-// AuthApiServerCreateNotify 添加服务器时通知回调
-func (app *AppStruct) AuthApiServerCreateNotify() {
+// NoAuthApiServerCreateNotify 添加服务器时通知回调
+func (app *AppStruct) NoAuthApiServerCreateNotify() {
 	var (
 		ip     = utils.GinInput(app.Context, "ip")
 		token  = utils.GinInput(app.Context, "token")
@@ -151,9 +151,17 @@ func (app *AppStruct) AuthApiServerList() {
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "获取服务器列表失败", gin.H{"error": err.Error()})
 	} else {
-		for i := range *list {
+		for i, s := range *list {
 			(*list)[i].Password = "******"
 			(*list)[i].Token = "******"
+			if s.State == "Installed" {
+				(*list)[i].State = "Offline"
+				for _, v := range vars.WsClients {
+					if v.Type == "server" && v.Uid == s.Id {
+						(*list)[i].State = "Online"
+					}
+				}
+			}
 		}
 		utils.GinResult(app.Context, http.StatusOK, "服务器列表", gin.H{"list": list})
 	}
@@ -175,18 +183,18 @@ func (app *AppStruct) AuthApiServerLog() {
 		utils.GinResult(app.Context, http.StatusBadRequest, "读取失败", gin.H{"error": err.Error()})
 		return
 	}
-	logFile := utils.CacheDir("/logs/server/%s/serve.log", ip)
-	if !utils.IsFile(logFile) {
+	logf := utils.CacheDir("/logs/server/%s/serve.log", ip)
+	if !utils.IsFile(logf) {
 		utils.GinResult(app.Context, http.StatusBadRequest, "日志文件不存在")
 		return
 	}
-	logContent, _ := utils.Cmd("-c", fmt.Sprintf("tail -%d %s", tail, logFile))
-	logContent = strings.TrimSpace(logContent)
-	logContent = regexp.MustCompile(`\[\d+m`).ReplaceAllString(logContent, "")
-	logContent = regexp.MustCompile(`\[\d+;\d+m`).ReplaceAllString(logContent, "")
-	logContent = regexp.MustCompile(`\[([^[]*\.[^[]+):\d+]\x20?`).ReplaceAllString(logContent, "")
+	content, _ := utils.Cmd("-c", fmt.Sprintf("tail -%d %s", tail, logf))
+	content = strings.TrimSpace(content)
+	content = regexp.MustCompile(`\[\d+m`).ReplaceAllString(content, "")
+	content = regexp.MustCompile(`\[\d+;\d+m`).ReplaceAllString(content, "")
+	content = regexp.MustCompile(`\[([^[]*\.[^[]+):\d+]\x20?`).ReplaceAllString(content, "")
 	utils.GinResult(app.Context, http.StatusOK, "读取成功", gin.H{
-		"log": logContent,
+		"log": content,
 	})
 }
 
@@ -218,7 +226,7 @@ func (app *AppStruct) AuthApiServerOperation() {
 			utils.Base64Encode(command),
 			logf)
 		fmt.Println(cmd)
-		_ = utils.AppendToFile(logf, fmt.Sprintf("开始删除服务器 %s\n", utils.FormatYmdHis(time.Now())))
+		_ = utils.AppendToFile(logf, fmt.Sprintf("------------------------\n开始删除服务器 %s\n", utils.FormatYmdHis(time.Now())))
 		_, _ = utils.Cmd("-c", cmd)
 		utils.GinResult(app.Context, http.StatusOK, "操作成功")
 	} else {

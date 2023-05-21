@@ -116,18 +116,25 @@ func WriteByte(path string, fileByte []byte) error {
 }
 
 // AppendToFile 追加文件
-func AppendToFile(fileName string, content string) error {
-	// 以只写的模式，打开文件
-	f, err := os.OpenFile(fileName, os.O_WRONLY, 0644)
+func AppendToFile(path string, content string) error {
+	fileDir := filepath.Dir(path)
+	if !Exists(fileDir) {
+		err := os.MkdirAll(fileDir, os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
-	} else {
-		// 查找文件末尾的偏移量
-		n, _ := f.Seek(0, io.SeekEnd)
-		// 从末尾的偏移量开始写入内容
-		_, err = f.WriteAt([]byte(content), n)
 	}
-	return f.Close()
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
+	if _, err = file.WriteString(content); err != nil {
+		return err
+	}
+	return nil
 }
 
 // SliceInsert 向数组插入内容
