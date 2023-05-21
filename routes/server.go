@@ -3,7 +3,6 @@ package routes
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"net/http"
 	"opsw/database"
 	"opsw/utils"
@@ -42,22 +41,14 @@ func (app *AppStruct) AuthApiServerCreate() {
 		return
 	}
 	//
-	db, err := database.InDB(vars.Config.DB)
-	if err != nil {
-		utils.GinResult(app.Context, http.StatusBadRequest, "数据库连接失败", gin.H{"error": err.Error()})
-	}
-	defer database.CloseDB(db)
-	//
-	var server = &database.Server{}
-	var serverUser = &database.ServerUser{}
-	db.Where(map[string]any{
+	if server, _ := database.ServerGet(map[string]any{
 		"ip": ip,
-	}).Last(&server)
-	if server.Id > 0 {
-		utils.GinResult(app.Context, http.StatusBadRequest, fmt.Sprintf("服务器 [%s] 已存在", ip))
+	}, -1, false); server != nil && server.Id > 0 {
+		utils.GinResult(app.Context, http.StatusBadRequest, fmt.Sprintf("服务器 [%s] 已存在", server.Ip))
 		return
 	}
-	server = &database.Server{
+	//
+	server := &database.Server{
 		Ip:       ip,
 		Username: username,
 		Password: password,
@@ -66,28 +57,17 @@ func (app *AppStruct) AuthApiServerCreate() {
 		State:    "Installing",
 		Token:    utils.Base64Encode("s:%s", utils.GenerateString(22)),
 	}
-	serverUser = &database.ServerUser{
+	serverUser := &database.ServerUser{
 		UserId:  app.UserInfo.Id,
 		OwnerId: app.UserInfo.Id,
 	}
-	err = db.Transaction(func(tx *gorm.DB) error {
-		err = tx.Create(server).Error
-		if err != nil {
-			return err
-		}
-		serverUser.ServerId = server.Id
-		err = tx.Create(serverUser).Error
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+	err = database.ServerCreate(server, serverUser)
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "添加服务器失败", gin.H{"error": err.Error()})
 	} else {
 		command := fmt.Sprintf("content://%s/api/shell/start.sh?token=%s", utils.GinHomeUrl(app.Context), server.Token)
 		url := fmt.Sprintf("%s/api/server/create/notify?token=%s", utils.GinHomeUrl(app.Context), server.Token)
-		logf := utils.CacheDir("/logs/server/%s/deploy.log", server.Ip)
+		logf := utils.CacheDir("/logs/server/%s/serve.log", server.Ip)
 		cmd := fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --url %s --log %s >/dev/null 2>&1 &",
 			runFile,
 			server.Ip,
@@ -98,7 +78,7 @@ func (app *AppStruct) AuthApiServerCreate() {
 			url,
 			logf)
 		fmt.Println(cmd)
-		_ = utils.WriteFile(logf, fmt.Sprintf("开始部署服务器 %s\n", utils.FormatYmdHis(time.Now())))
+		_ = utils.WriteFile(logf, fmt.Sprintf("开始添加服务器 %s\n", utils.FormatYmdHis(time.Now())))
 		_, _ = utils.Cmd("-c", cmd)
 		utils.GinResult(app.Context, http.StatusOK, "添加服务器成功", server)
 	}
@@ -113,32 +93,24 @@ func (app *AppStruct) AuthApiServerCreateNotify() {
 		error_ = utils.GinInput(app.Context, "error")
 		time_  = utils.GinInput(app.Context, "time")
 	)
+	if ip == "" {
+		utils.GinResult(app.Context, http.StatusBadRequest, "IP不能为空")
+		return
+	}
 	if token == "" {
 		utils.GinResult(app.Context, http.StatusBadRequest, "Token不能为空")
 		return
 	}
-	db, err := database.InDB(vars.Config.DB)
-	if err != nil {
-		utils.GinResult(app.Context, http.StatusBadRequest, "数据库连接失败", gin.H{"error": err.Error()})
-		return
-	}
-	defer database.CloseDB(db)
-	//
-	var server = &database.Server{}
-	err = db.Where(map[string]any{
+	server, err := database.ServerGet(map[string]any{
 		"ip":    ip,
 		"token": token,
-	}).Last(&server).Error
+	}, -1, false)
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "服务器不存在", gin.H{"error": err.Error()})
 		return
 	}
-	if server.Id == 0 {
-		utils.GinResult(app.Context, http.StatusBadRequest, "服务器不存在")
-		return
-	}
 	//
-	logf := utils.CacheDir("/logs/server/%s/deploy.log", server.Ip)
+	logf := utils.CacheDir("/logs/server/%s/serve.log", server.Ip)
 	if server.State == "Installing" {
 		_ = utils.AppendToFile(logf, fmt.Sprintf("添加服务器结束，时间：%s\n", time_))
 		if state == "error" {
@@ -148,7 +120,7 @@ func (app *AppStruct) AuthApiServerCreateNotify() {
 			server.State = "Installed"
 			_ = utils.AppendToFile(logf, fmt.Sprintf("添加服务器成功\n"))
 		}
-		err = db.Save(server).Error
+		err = database.ServerUpdate(server)
 		if err != nil {
 			utils.GinResult(app.Context, http.StatusBadRequest, "更新服务器状态失败", gin.H{"error": err.Error()})
 			return
@@ -203,7 +175,7 @@ func (app *AppStruct) AuthApiServerLog() {
 		utils.GinResult(app.Context, http.StatusBadRequest, "读取失败", gin.H{"error": err.Error()})
 		return
 	}
-	logFile := utils.CacheDir("/logs/server/%s/deploy.log", ip)
+	logFile := utils.CacheDir("/logs/server/%s/serve.log", ip)
 	if !utils.IsFile(logFile) {
 		utils.GinResult(app.Context, http.StatusBadRequest, "日志文件不存在")
 		return
@@ -221,19 +193,35 @@ func (app *AppStruct) AuthApiServerLog() {
 func (app *AppStruct) AuthApiServerOperation() {
 	ip := app.Context.Query("ip")
 	operation := app.Context.Query("operation")
-	status := map[string]string{
-		"delete": "Deleting",
-	}[operation]
-	if status == "" {
+	//
+	if operation == "delete" {
+		runFile, err := exec.LookPath(os.Args[0])
+		if err != nil {
+			utils.GinResult(app.Context, http.StatusBadRequest, "获取当前路径失败", gin.H{"error": err.Error()})
+			return
+		}
+		server, err := database.ServerDelete(map[string]any{
+			"ip": ip,
+		}, app.UserInfo.Id)
+		if err != nil {
+			utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
+			return
+		}
+		command := fmt.Sprintf("content://%s/api/shell/end.sh", utils.GinHomeUrl(app.Context))
+		logf := utils.CacheDir("/logs/server/%s/serve.log", server.Ip)
+		cmd := fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --log %s >/dev/null 2>&1 &",
+			runFile,
+			server.Ip,
+			server.Port,
+			server.Username,
+			utils.Base64Encode(server.Password),
+			utils.Base64Encode(command),
+			logf)
+		fmt.Println(cmd)
+		_ = utils.AppendToFile(logf, fmt.Sprintf("开始删除服务器 %s\n", utils.FormatYmdHis(time.Now())))
+		_, _ = utils.Cmd("-c", cmd)
+		utils.GinResult(app.Context, http.StatusOK, "操作成功")
+	} else {
 		utils.GinResult(app.Context, http.StatusBadRequest, "操作类型错误")
-		return
 	}
-	_, err := database.ServerDelete(map[string]any{
-		"ip": ip,
-	}, app.UserInfo.Id)
-	if err != nil {
-		utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
-		return
-	}
-	utils.GinResult(app.Context, http.StatusOK, "操作成功")
 }

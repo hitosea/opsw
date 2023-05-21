@@ -111,6 +111,31 @@ func UserCreate(email, name, password string) (*User, error) {
 	return user, nil
 }
 
+func ServerCreate(server *Server, serverUser *ServerUser) error {
+	db, err := InDB(vars.Config.DB)
+	if err != nil {
+		return err
+	}
+	defer CloseDB(db)
+	//
+	err = db.Transaction(func(tx *gorm.DB) error {
+		err = tx.Create(server).Error
+		if err != nil {
+			return err
+		}
+		serverUser.ServerId = server.Id
+		err = tx.Create(serverUser).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func ServerGet(query any, userId int32, owner bool) (*Server, error) {
 	db, err := InDB(vars.Config.DB)
 	if err != nil {
@@ -142,6 +167,20 @@ func ServerGet(query any, userId int32, owner bool) (*Server, error) {
 		}
 	}
 	return server, nil
+}
+
+func ServerUpdate(server *Server) error {
+	db, err := InDB(vars.Config.DB)
+	if err != nil {
+		return err
+	}
+	defer CloseDB(db)
+	//
+	err = db.Save(server).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func ServerDelete(query any, userId int32) (*Server, error) {
