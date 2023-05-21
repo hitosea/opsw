@@ -173,14 +173,7 @@ func (app *AppStruct) wsOnlineClients(client vars.WsClientStruct) {
 	wsMutex.Lock()
 	vars.WsClients = append(vars.WsClients, client)
 	wsMutex.Unlock()
-	app.wsNotifyClients(client.Rid, vars.WsMsgStruct{
-		Type: vars.WsOnline,
-		Data: map[string]any{
-			"type": client.Type,
-			"uid":  client.Uid,
-			"rid":  client.Rid,
-		},
-	})
+	app.wsNotifyStateClients(vars.WsOnline, client)
 }
 
 // 客户端离线
@@ -191,29 +184,32 @@ func (app *AppStruct) wsOfflineClients(rid string) {
 			vars.WsClients = append(vars.WsClients[:k], vars.WsClients[k+1:]...)
 			_ = client.Conn.Close()
 			wsMutex.Unlock()
-			//
-			app.wsNotifyClients(rid, vars.WsMsgStruct{
-				Type: vars.WsOffline,
-				Data: map[string]any{
-					"type": client.Type,
-					"uid":  client.Uid,
-					"rid":  client.Rid,
-				},
-			})
+			app.wsNotifyStateClients(vars.WsOffline, client)
 			break
 		}
 	}
 }
 
-// 通知客户端
-func (app *AppStruct) wsNotifyClients(rid string, msgData vars.WsMsgStruct) {
-	sendMsg, err := json.Marshal(msgData)
-	if err != nil {
-		return
-	}
-	for _, client := range vars.WsClients {
-		if client.Rid != rid {
-			_ = client.Conn.WriteMessage(websocket.TextMessage, sendMsg)
+// 通知客户端服务器在线状态
+func (app *AppStruct) wsNotifyStateClients(type_ int, client vars.WsClientStruct) {
+	if client.Type == "server" {
+		sendMsg, err := json.Marshal(vars.WsMsgStruct{
+			Type: type_,
+			Data: map[string]any{
+				"type": client.Type,
+				"uid":  client.Uid,
+				"rid":  client.Rid,
+			},
+		})
+		if err != nil {
+			return
+		}
+		for _, serverUser := range database.ServerUserList(client.Uid) {
+			for _, c := range vars.WsClients {
+				if c.Type == "user" && c.Uid == serverUser.UserId {
+					_ = c.Conn.WriteMessage(websocket.TextMessage, sendMsg)
+				}
+			}
 		}
 	}
 }

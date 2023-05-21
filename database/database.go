@@ -228,6 +228,20 @@ func ServerInfoGet(serverId int32) (*ServerInfo, error) {
 	return serverInfo, nil
 }
 
+func ServerUserList(serverId int32) []ServerUser {
+	db, err := InDB(vars.Config.DB)
+	if err != nil {
+		return nil
+	}
+	defer CloseDB(db)
+	//
+	var serverUsers []ServerUser
+	db.Where(map[string]any{
+		"server_id": serverId,
+	}).Find(&serverUsers)
+	return serverUsers
+}
+
 func ServerInfoUpdate(serverId int32, data any) error {
 	ss, err := json.Marshal(data)
 	if err != nil {

@@ -17,6 +17,7 @@ export default defineConfig({
             '/ws': {
                 target: proxyTarget,
                 changeOrigin: true,
+                ws: true
             }
         },
     },

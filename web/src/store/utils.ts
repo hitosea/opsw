@@ -232,6 +232,21 @@ const utils = {
     },
 
     /**
+     * 随机字符串
+     * @param len
+     */
+    randomString(len) {
+        len = len || 32;
+        let $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678oOLl9gqVvUuI1';
+        let maxPos = $chars.length;
+        let pwd = '';
+        for (let i = 0; i < len; i++) {
+            pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+        }
+        return pwd;
+    },
+
+    /**
      * 检测手机号码格式
      * @param str
      * @returns {boolean}
@@ -336,6 +351,89 @@ const utils = {
             return ""
         }
         return utils.rightDelete(url.replace("?&", "?"), '?');
+    },
+
+    /**
+     * 返回 时间对象|时间戳
+     * @param v
+     * @param stamp 是否返回时间戳
+     * @returns {Date|number}
+     * @constructor
+     */
+    Date(v, stamp = false) {
+        if (typeof v === "string" && this.strExists(v, "-")) {
+            v = v.replace(/-/g, '/');
+        }
+        if (stamp === true) {
+            return Math.round(new Date(v).getTime() / 1000)
+        }
+        return new Date(v);
+    },
+
+    /**
+     * 时间戳转时间格式
+     * @param format
+     * @param v
+     * @returns {string}
+     */
+    formatDate(format = undefined, v = undefined) {
+        if (typeof format === 'undefined' || format === '') {
+            format = 'Y-m-d H:i:s';
+        }
+        let dateObj;
+        if (v instanceof Date) {
+            dateObj = v;
+        }else {
+            if (typeof v === 'undefined') {
+                v = new Date().getTime();
+            }else if (/^(-)?\d{1,10}$/.test(v)) {
+                v = v * 1000;
+            } else if (/^(-)?\d{1,13}$/.test(v)) {
+                v = v * 1000;
+            } else if (/^(-)?\d{1,14}$/.test(v)) {
+                v = v * 100;
+            } else if (/^(-)?\d{1,15}$/.test(v)) {
+                v = v * 10;
+            } else if (/^(-)?\d{1,16}$/.test(v)) {
+                v = v * 1;
+            } else {
+                return v;
+            }
+            dateObj = this.Date(v);
+        }
+        //
+        format = format.replace(/Y/g, dateObj.getFullYear());
+        format = format.replace(/m/g, this.zeroFill(dateObj.getMonth() + 1, 2));
+        format = format.replace(/d/g, this.zeroFill(dateObj.getDate(), 2));
+        format = format.replace(/H/g, this.zeroFill(dateObj.getHours(), 2));
+        format = format.replace(/i/g, this.zeroFill(dateObj.getMinutes(), 2));
+        format = format.replace(/s/g, this.zeroFill(dateObj.getSeconds(), 2));
+        return format;
+    },
+
+    /**
+     * 补零
+     * @param str
+     * @param length
+     * @param after
+     * @returns {*}
+     */
+    zeroFill(str, length, after = false) {
+        str += "";
+        if (str.length >= length) {
+            return str;
+        }
+        let _str = '', _ret = '';
+        for (let i = 0; i < length; i++) {
+            _str += '0';
+        }
+        if (after) {
+            _ret = `${str}${_str}`
+            return _ret.substring(0, length);
+        } else {
+            _ret = `${_str}${str}`
+            return _ret.substring(_ret.length - length);
+        }
     },
 
     /**
@@ -451,7 +549,7 @@ const utils = {
     async IDBJson(key, def = {}) {
         const value = await utils.IDBValue(key)
         return utils.isJson(value) ? value : def;
-    }
+    },
 }
 
 export default utils
