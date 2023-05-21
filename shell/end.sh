@@ -4,7 +4,7 @@ function log() {
     echo -e "[Opsw Log]: $1"
 }
 
-log "开始卸载 Opsw 服务器运维管理面板"
+log "开始卸载 Opsw 运维服务"
 
 log "1) 停止 Opsw 服务进程..."
 systemctl stop opsw.service

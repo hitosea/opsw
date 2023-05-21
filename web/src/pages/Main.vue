@@ -46,7 +46,7 @@
                                 <div class="name">
                                     <ul>
                                         <li>{{ item['ip'] }}</li>
-                                        <li v-if="item['remark']" class="remark">{{ item['remark'] }}</li>
+                                        <li v-if="item['remark'] || item['hostname']" class="remark">{{ item['remark'] || item['hostname'] }}</li>
                                     </ul>
                                 </div>
                                 <div class="release">{{ item['platform'] }}-{{ item['platform_version'] }}</div>
@@ -476,20 +476,15 @@ export default defineComponent({
                             list-style: none;
                             padding: 0 6px 0 0;
                             margin: 0;
-                            font-size: 16px;
-                            font-weight: 600;
                             overflow: hidden;
                             text-overflow: ellipsis;
                             white-space: nowrap;
-                            &.repos {
-                                font-size: 14px;
+                            &.remark {
                                 font-weight: normal;
-                                > a {
-                                    opacity: 0.5;
-                                    user-select: auto;
-                                    &:hover {
-                                        opacity: 1;
-                                    }
+                                opacity: 0.5;
+                                user-select: auto;
+                                &:hover {
+                                    opacity: 1;
                                 }
                             }
                         }
