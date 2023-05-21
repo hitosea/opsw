@@ -46,6 +46,7 @@ type ServerList struct {
 
 type ServerInfo struct {
 	Base
+	ServerId             int32  `json:"server_id"`
 	Hostname             string `json:"hostname"`
 	OS                   string `json:"os"`
 	Platform             string `json:"platform"`
@@ -59,7 +60,7 @@ type ServerInfo struct {
 	CPULogicalCores int    `json:"cpu_logical_cores"`
 	CPUModelName    string `json:"cpu_model_name"`
 
-	CurrentInfo ServerInfoCurrent `json:"current_info"`
+	CurrentInfo string `json:"current_info"`
 
 	Version   string `json:"version"`
 	CommitSHA string `json:"commit_sha"`

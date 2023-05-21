@@ -12,6 +12,9 @@ LDFLAGS	:= -s -w -X "$(MODULE)/vars.Version=$(VERSION)" -X "$(MODULE)/vars.Commi
 run: build
 	./opsw run --mode debug
 
+watch: asset
+	$(GOCGO) air
+
 release: asset
 	$(GOCGO) GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "$(LDFLAGS)" -o ./opsw-linux-amd64/opsw
 	$(GOCGO) GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc-10 go build -trimpath -ldflags "$(LDFLAGS)" -o ./opsw-linux-arm64/opsw
@@ -31,3 +34,6 @@ clean:
 # 提示 go-assets-builder: No such file or directory 时解決辦法
 # go get github.com/jessevdk/go-assets-builder
 # go install github.com/jessevdk/go-assets-builder@latest
+
+# 提示 air: No such file or directory 时解決辦法
+# go install github.com/cosmtrek/air@latest

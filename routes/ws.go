@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"opsw/database"
 	"opsw/utils"
 	"opsw/vars"
 	"sync"
@@ -149,8 +150,16 @@ func (app *AppStruct) wsHandleUserMsg(conn *websocket.Conn, msg vars.WsMsgStruct
 
 // 处理服务器消息
 func (app *AppStruct) wsHandleServerMsg(conn *websocket.Conn, msg vars.WsMsgStruct) {
+	var replyMsg []byte
 	if msg.Type == vars.WsServerInfo {
-		fmt.Println(msg.Data)
+		err := database.ServerInfoUpdate(app.ServerInfo.Id, msg.Data)
+		if err != nil {
+			fmt.Printf("服务器信息更新失败：%s\n", err.Error())
+			return
+		}
+	}
+	if replyMsg != nil {
+		_ = conn.WriteMessage(websocket.TextMessage, replyMsg)
 	}
 }
 

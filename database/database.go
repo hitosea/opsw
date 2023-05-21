@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
@@ -208,4 +209,39 @@ func ServerDelete(query any, userId int32) (*Server, error) {
 		return nil, err
 	}
 	return server, nil
+}
+
+func ServerInfoUpdate(serverId int32, data any) error {
+	ss, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	var info *ServerInfo
+	if err = json.Unmarshal(ss, &info); err != nil {
+		return err
+	}
+	info.ServerId = serverId
+	//
+	db, err := InDB(vars.Config.DB)
+	if err != nil {
+		return err
+	}
+	var serverInfo *ServerInfo
+	db.Where(map[string]any{
+		"server_id": serverId,
+	}).Last(&serverInfo)
+	if serverInfo.Id == 0 {
+		err = db.Create(info).Error
+		if err != nil {
+			return err
+		}
+	} else {
+		info.Id = serverInfo.Id
+		info.CreatedAt = serverInfo.CreatedAt
+		err = db.Save(info).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

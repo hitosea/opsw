@@ -193,7 +193,9 @@ func loadBaseInfo(ioOption string, netOption string) (*database.ServerInfo, erro
 	baseInfo.CPUCores, _ = cpu.Counts(false)
 	baseInfo.CPULogicalCores, _ = cpu.Counts(true)
 
-	baseInfo.CurrentInfo = *loadCurrentInfo(ioOption, netOption)
+	currentInfo := loadCurrentInfo(ioOption, netOption)
+	ss, _ = json.Marshal(currentInfo)
+	baseInfo.CurrentInfo = string(ss)
 
 	baseInfo.Version = vars.Version
 	baseInfo.CommitSHA = vars.CommitSHA
@@ -201,7 +203,7 @@ func loadBaseInfo(ioOption string, netOption string) (*database.ServerInfo, erro
 }
 
 // 读取服务器当前信息
-func loadCurrentInfo(ioOption string, netOption string) *database.ServerInfoCurrent {
+func loadCurrentInfo(ioOption string, netOption string) database.ServerInfoCurrent {
 	var currentInfo database.ServerInfoCurrent
 	hostInfo, _ := host.Info()
 	currentInfo.Uptime = hostInfo.Uptime
@@ -267,7 +269,7 @@ func loadCurrentInfo(ioOption string, netOption string) *database.ServerInfoCurr
 	}
 
 	currentInfo.ShotTime = time.Now()
-	return &currentInfo
+	return currentInfo
 }
 
 // 读取服务器磁盘信息

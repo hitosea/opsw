@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS server_users (
 
 CREATE TABLE IF NOT EXISTS server_infos (
     id integer NOT NULL PRIMARY KEY {{.INCREMENT}},
+    server_id integer NOT NULL,
     hostname VARCHAR(255) NOT NULL,
     os VARCHAR(255) NOT NULL,
     platform VARCHAR(255) NOT NULL,
