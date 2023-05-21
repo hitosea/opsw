@@ -10,6 +10,9 @@ import (
 	"opsw/vars"
 	"os"
 	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -183,4 +186,29 @@ func (app *AppStruct) AuthApiServerList() {
 		}
 		utils.GinResult(app.Context, http.StatusOK, "服务器列表", gin.H{"list": list})
 	}
+}
+
+// AuthApiServerLog 查看服务器日志
+func (app *AppStruct) AuthApiServerLog() {
+	ip := app.Context.Query("ip")
+	tail, _ := strconv.Atoi(app.Context.Query("tail"))
+	if tail <= 0 {
+		tail = 200
+	}
+	if tail > 10000 {
+		tail = 10000
+	}
+	logFile := utils.CacheDir("/logs/server/%s/deploy.log", ip)
+	if !utils.IsFile(logFile) {
+		utils.GinResult(app.Context, http.StatusBadRequest, "日志文件不存在")
+		return
+	}
+	logContent, _ := utils.Cmd("-c", fmt.Sprintf("tail -%d %s", tail, logFile))
+	logContent = strings.TrimSpace(logContent)
+	logContent = regexp.MustCompile(`\[\d+m`).ReplaceAllString(logContent, "")
+	logContent = regexp.MustCompile(`\[\d+;\d+m`).ReplaceAllString(logContent, "")
+	logContent = regexp.MustCompile(`\[([^[]*\.[^[]+):\d+]\x20?`).ReplaceAllString(logContent, "")
+	utils.GinResult(app.Context, http.StatusOK, "读取成功", gin.H{
+		"log": logContent,
+	})
 }

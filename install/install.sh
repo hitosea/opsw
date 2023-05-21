@@ -77,7 +77,7 @@ function Install_Compose(){
     if [[ $? -ne 0 ]]; then
         log "... 在线安装 docker-compose"
 
-        curl -s -L "https://github.com/docker/compose/releases/download/v2.18.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        curl -s -L "https://github.com/docker/compose/releases/download/v2.18.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose 2>&1 | tee -a ${CURRENT_DIR}/install.log
         if [[ ! -f /usr/local/bin/docker-compose ]];then
             log "docker-compose 下载失败，请稍候重试"
             exit 1

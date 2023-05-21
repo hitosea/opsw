@@ -68,6 +68,16 @@ func execStart() {
 	key := utils.GenerateString(32)
 	cmdFile := fmt.Sprintf("/tmp/.exec_%s", key)
 	resFile := fmt.Sprintf("/tmp/.exec_%s_result", key)
+	conFile := fmt.Sprintf("/tmp/.exec_%s_content", key)
+	if strings.HasPrefix(execConf.Cmd, "content://") {
+		execConf.Cmd = execConf.Cmd[10:]
+		err := execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("curl -o %s -sSL '%s'", conFile, execConf.Cmd))
+		if err != nil {
+			response(err)
+			return
+		}
+		execConf.Cmd = execConf.SSHConfig.CmdToStringNoLog(execConf.Host, fmt.Sprintf("cat %s", conFile), "\n")
+	}
 	err := execConf.SSHConfig.SaveFileAndChmodX(execConf.Host, cmdFile, utils.Shell("/exec.sh", map[string]any{
 		"CMD":      execConf.Cmd,
 		"END_TAG":  "success",
@@ -94,6 +104,7 @@ func execStart() {
 
 	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", cmdFile))
 	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", resFile))
+	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", conFile))
 }
 
 func response(err error) {
@@ -131,8 +142,8 @@ func init() {
 	execCmd.Flags().StringVar(&execConf.SSHConfig.User, "user", "root", "用户名，默认: root")
 	execCmd.Flags().StringVar(&execConf.SSHConfig.Password, "password", "", "密码, 必须经过base64编码（如果设置pkfile，则为pkfile的密码）")
 	execCmd.Flags().StringVar(&execConf.SSHConfig.PkFile, "pkfile", "", "密钥路径，如果设置，则使用密钥登录")
-	execCmd.Flags().StringVar(&execConf.Cmd, "cmd", "", "执行的命令, 必须经过base64编码")
-	execCmd.Flags().StringVar(&execConf.Param, "param", "", "参数, 必须经过base64编码")
+	execCmd.Flags().StringVar(&execConf.Cmd, "cmd", "", "执行的命令，如果想执行url内容请以\"content://\"开头, 必须经过base64编码")
+	execCmd.Flags().StringVar(&execConf.Param, "param", "", "执行命令参数, 必须经过base64编码")
 	execCmd.Flags().StringVar(&execConf.Url, "url", "", "回调地址, 必须以 \"http://\" or \"https://\" 前缀")
 	execCmd.Flags().StringVar(&execConf.LogFile, "log", "", "日志文件路径")
 }

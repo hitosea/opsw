@@ -96,6 +96,19 @@
                 <Create @onDone="createDone"/>
             </n-card>
         </n-modal>
+
+        <!-- 日志 -->
+        <n-modal v-model:show="logModal" :auto-focus="false">
+            <n-card
+                style="width:600px;max-width:90%"
+                title="日志"
+                :bordered="false"
+                size="huge"
+                closable
+                @close="logModal=false">
+                <Log :ip="logIp" v-model:show="logModal"/>
+            </n-card>
+        </n-modal>
     </div>
 </template>
 
@@ -108,9 +121,11 @@ import Loading from "../components/Loading.vue";
 import Create from "../components/Create.vue";
 import call from "../store/call";
 import utils from "../store/utils";
+import Log from "../components/Log.vue";
 
 export default defineComponent({
     components: {
+        Log,
         Create,
         Loading,
         Header,
@@ -127,6 +142,8 @@ export default defineComponent({
         const dialog = useDialog()
         const dLog = ref(null);
         const createModal = ref(false);
+        const logModal = ref(false);
+        const logIp = ref("");
         const loadIng = ref(false);
         const loadShow = ref(false);
         const items = ref([])
@@ -190,7 +207,8 @@ export default defineComponent({
             if (key === 'info') {
                 message.warning("查看详情")
             } else if (key === 'log') {
-                message.warning("查看日志")
+                logIp.value = item.ip
+                logModal.value = true
             } else if (key === 'delete') {
                 const dd = dialog.warning({
                     title: '删除服务器',
@@ -299,8 +317,14 @@ export default defineComponent({
 
         return {
             createModal,
+            createDone,
+
+            logModal,
+            logIp,
+
             loadIng,
             loadShow,
+
             searchKey,
             searchList,
 
@@ -311,9 +335,8 @@ export default defineComponent({
 
             onLoad,
             addIcon,
-            createDone,
-
             systemsFormat,
+
             stateJudge,
             stateLoading,
             stateStyle,

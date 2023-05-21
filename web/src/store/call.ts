@@ -97,7 +97,7 @@ class call {
     }
 
     // 自定义方法封装（提示框）
-    dialog({code, msg, data}) {
+    dialog({code, msg, data}, dialogOptions = {}) {
         let title = '温馨提示'
         let content = msg
         if (code !== 200) {
@@ -114,6 +114,9 @@ class call {
         }
         if (utils.isJson(data) && utils.isJson(data.dialog)) {
             options = Object.assign(options, data.dialog)
+        }
+        if (utils.isJson(dialogOptions)) {
+            options = Object.assign(options, dialogOptions)
         }
         if (code === 200) {
             return dialogProvider().success(options)
