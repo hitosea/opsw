@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	workLogDir = utils.CacheDir("/work/log")
+	workLogDir = utils.CacheDir("/logs/work")
 	workConf   = &vars.WorkStruct{}
 	workRid    = ""
 )

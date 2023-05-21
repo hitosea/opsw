@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/url"
@@ -34,6 +35,11 @@ func GinScheme(c *gin.Context) string {
 		scheme = "https://"
 	}
 	return scheme
+}
+
+// GinHomeUrl Gin获取HomeUrl
+func GinHomeUrl(c *gin.Context) string {
+	return fmt.Sprintf("%s%s", GinScheme(c), c.Request.Host)
 }
 
 // GinGetCookie Gin获取Cookie

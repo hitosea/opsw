@@ -8,6 +8,8 @@ import (
 	"opsw/database"
 	"opsw/utils"
 	"opsw/vars"
+	"os"
+	"os/exec"
 )
 
 // AuthApiServerCreate 添加服务器
@@ -28,6 +30,12 @@ func (app *AppStruct) AuthApiServerCreate() {
 	}
 	if port == "" {
 		port = "22"
+	}
+	//
+	runFile, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		utils.GinResult(app.Context, http.StatusBadRequest, "获取当前路径失败", gin.H{"error": err.Error()})
+		return
 	}
 	//
 	db, err := database.InDB(vars.Config.DB)
@@ -73,6 +81,20 @@ func (app *AppStruct) AuthApiServerCreate() {
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "添加服务器失败", gin.H{"error": err.Error()})
 	} else {
+		start := fmt.Sprintf("%s/api/shell/start.sh?token=%s", utils.GinHomeUrl(app.Context), server.Token)
+		curl := utils.Base64Encode(fmt.Sprintf("curl -sSL '%s' | bash", start))
+		logf := utils.CacheDir("logs/server/%s", server.Id)
+		cmd := fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --log %s >/dev/null 2>&1 &",
+			runFile,
+			server.Ip,
+			server.Port,
+			server.Username,
+			server.Password,
+			curl,
+			logf,
+		)
+		fmt.Println(cmd)
+		_, _ = utils.Cmd("-c", cmd)
 		utils.GinResult(app.Context, http.StatusOK, "添加服务器成功", server)
 	}
 }

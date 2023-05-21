@@ -23,6 +23,10 @@ var (
 
 // NoAuthWs 启动 websocket
 func (app *AppStruct) NoAuthWs() {
+	if app.Context.Request.Header.Get("Upgrade") != "websocket" {
+		utils.GinResult(app.Context, http.StatusBadRequest, "不是 websocket 请求")
+		return
+	}
 	conn, err := wsUpgrader.Upgrade(app.Context.Writer, app.Context.Request, nil)
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "连接失败", gin.H{"error": err.Error()})

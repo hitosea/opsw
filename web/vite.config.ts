@@ -4,12 +4,18 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import {NaiveUiResolver} from 'unplugin-vue-components/resolvers'
 
+const proxyTarget: string = 'http://192.168.0.111:8080'
+
 export default defineConfig({
     base: '/',
     server: {
         proxy: {
             '/api': {
-                target: 'http://192.168.0.111:8080',
+                target: proxyTarget,
+                changeOrigin: true,
+            },
+            '/ws': {
+                target: proxyTarget,
                 changeOrigin: true,
             }
         },

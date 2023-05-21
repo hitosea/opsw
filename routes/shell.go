@@ -6,11 +6,11 @@ import (
 	"opsw/utils"
 )
 
-// NoAuthShellStartSh 登录
-func (app *AppStruct) NoAuthShellStartSh() {
+// NoAuthApiShellStartSh 登录
+func (app *AppStruct) NoAuthApiShellStartSh() {
 	token := utils.GinInput(app.Context, "token")
 	app.Context.String(http.StatusOK, utils.Shell("/start.sh", map[string]any{
-		"URL":   fmt.Sprintf("%s%s/ws", utils.GinScheme(app.Context), app.Context.Request.Host),
+		"URL":   fmt.Sprintf("%s/ws", utils.GinHomeUrl(app.Context)),
 		"TOKEN": token,
 	}))
 }
