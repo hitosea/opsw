@@ -65,8 +65,8 @@ func (app *AppStruct) AuthApiServerCreate() {
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "添加服务器失败", gin.H{"error": err.Error()})
 	} else {
-		command := fmt.Sprintf("content://%s/api/shell/start.sh?token=%s", utils.GinHomeUrl(app.Context), server.Token)
-		url := fmt.Sprintf("%s/api/server/create/notify?token=%s", utils.GinHomeUrl(app.Context), server.Token)
+		command := fmt.Sprintf("content://%s/api/shell/start.sh?action=install&token=%s", utils.GinHomeUrl(app.Context), server.Token)
+		url := fmt.Sprintf("%s/api/server/notify?token=%s", utils.GinHomeUrl(app.Context), server.Token)
 		logf := utils.CacheDir("/logs/server/%s/serve.log", server.Ip)
 		cmd := fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --url %s --log %s >/dev/null 2>&1 &",
 			runFile,
@@ -77,15 +77,14 @@ func (app *AppStruct) AuthApiServerCreate() {
 			utils.Base64Encode(command),
 			url,
 			logf)
-		fmt.Println(cmd)
 		_ = utils.WriteFile(logf, fmt.Sprintf("开始添加服务器 %s\n", utils.FormatYmdHis(time.Now())))
 		_, _ = utils.Cmd("-c", cmd)
 		utils.GinResult(app.Context, http.StatusOK, "添加服务器成功", server)
 	}
 }
 
-// NoAuthApiServerCreateNotify 添加服务器时通知回调
-func (app *AppStruct) NoAuthApiServerCreateNotify() {
+// NoAuthApiServerNotify 添加/升级服务器时通知回调
+func (app *AppStruct) NoAuthApiServerNotify() {
 	var (
 		ip     = utils.GinInput(app.Context, "ip")
 		token  = utils.GinInput(app.Context, "token")
@@ -111,14 +110,18 @@ func (app *AppStruct) NoAuthApiServerCreateNotify() {
 	}
 	//
 	logf := utils.CacheDir("/logs/server/%s/serve.log", server.Ip)
-	if server.State == "Installing" {
-		_ = utils.AppendToFile(logf, fmt.Sprintf("添加服务器结束，时间：%s\n", time_))
+	action := "添加"
+	if server.State == "Upgrading" {
+		action = "升级"
+	}
+	if server.State == "Installing" || server.State == "Upgrading" {
+		_ = utils.AppendToFile(logf, fmt.Sprintf("%s服务器结束，时间：%s\n", action, time_))
 		if state == "error" {
 			server.State = "Error"
 			_ = utils.AppendToFile(logf, fmt.Sprintf("添加服务器失败，原因：%s\n", error_))
 		} else {
 			server.State = "Installed"
-			_ = utils.AppendToFile(logf, fmt.Sprintf("添加服务器成功\n"))
+			_ = utils.AppendToFile(logf, fmt.Sprintf("%s服务器成功\n", action))
 		}
 		err = database.ServerUpdate(server)
 		if err != nil {
@@ -126,7 +129,7 @@ func (app *AppStruct) NoAuthApiServerCreateNotify() {
 			return
 		}
 	}
-	utils.GinResult(app.Context, http.StatusOK, "添加服务器成功", gin.H{
+	utils.GinResult(app.Context, http.StatusOK, fmt.Sprintf("%s服务器成功", action), gin.H{
 		"ip":    ip,
 		"state": state,
 		"error": error_,
@@ -202,12 +205,14 @@ func (app *AppStruct) AuthApiServerOperation() {
 	ip := app.Context.Query("ip")
 	operation := app.Context.Query("operation")
 	//
+	runFile, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		utils.GinResult(app.Context, http.StatusBadRequest, "获取当前路径失败", gin.H{"error": err.Error()})
+		return
+	}
+	//
 	if operation == "delete" {
-		runFile, err := exec.LookPath(os.Args[0])
-		if err != nil {
-			utils.GinResult(app.Context, http.StatusBadRequest, "获取当前路径失败", gin.H{"error": err.Error()})
-			return
-		}
+		// 删除服务器
 		server, err := database.ServerDelete(map[string]any{
 			"ip": ip,
 		}, app.UserInfo.Id)
@@ -225,10 +230,44 @@ func (app *AppStruct) AuthApiServerOperation() {
 			utils.Base64Encode(server.Password),
 			utils.Base64Encode(command),
 			logf)
-		fmt.Println(cmd)
-		_ = utils.AppendToFile(logf, fmt.Sprintf("------------------------\n开始删除服务器 %s\n", utils.FormatYmdHis(time.Now())))
+		_ = utils.AppendToFile(logf, fmt.Sprintf("--------------------\n开始删除服务器 %s\n", utils.FormatYmdHis(time.Now())))
 		_, _ = utils.Cmd("-c", cmd)
 		utils.GinResult(app.Context, http.StatusOK, "操作成功")
+	} else if operation == "upgrade" {
+		// 升级服务器
+		server, err := database.ServerGet(map[string]any{
+			"ip": ip,
+		}, app.UserInfo.Id, true)
+		if err != nil {
+			utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
+			return
+		}
+		serverInfo, _ := database.ServerInfoGet(server.Id)
+		if serverInfo == nil || strings.Compare(vars.Version, serverInfo.Version) > 0 {
+			server.State = "Upgrading"
+			err = database.ServerUpdate(server)
+			if err != nil {
+				utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
+				return
+			}
+			command := fmt.Sprintf("content://%s/api/shell/start.sh?action=upgrade&token=%s", utils.GinHomeUrl(app.Context), server.Token)
+			url := fmt.Sprintf("%s/api/server/notify?token=%s", utils.GinHomeUrl(app.Context), server.Token)
+			logf := utils.CacheDir("/logs/server/%s/serve.log", server.Ip)
+			cmd := fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --url %s --log %s >/dev/null 2>&1 &",
+				runFile,
+				server.Ip,
+				server.Port,
+				server.Username,
+				utils.Base64Encode(server.Password),
+				utils.Base64Encode(command),
+				url,
+				logf)
+			_ = utils.AppendToFile(logf, fmt.Sprintf("--------------------\n开始升级服务器 %s\n", utils.FormatYmdHis(time.Now())))
+			_, _ = utils.Cmd("-c", cmd)
+			utils.GinResult(app.Context, http.StatusOK, "操作成功")
+		} else {
+			utils.GinResult(app.Context, http.StatusBadRequest, "服务器已经是最新版本")
+		}
 	} else {
 		utils.GinResult(app.Context, http.StatusBadRequest, "操作类型错误")
 	}

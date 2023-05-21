@@ -211,6 +211,23 @@ func ServerDelete(query any, userId int32) (*Server, error) {
 	return server, nil
 }
 
+func ServerInfoGet(serverId int32) (*ServerInfo, error) {
+	db, err := InDB(vars.Config.DB)
+	if err != nil {
+		return nil, err
+	}
+	defer CloseDB(db)
+	//
+	var serverInfo *ServerInfo
+	db.Where(map[string]any{
+		"server_id": serverId,
+	}).Last(&serverInfo)
+	if serverInfo.Id == 0 {
+		return nil, errors.New("服务器信息不存在")
+	}
+	return serverInfo, nil
+}
+
 func ServerInfoUpdate(serverId int32, data any) error {
 	ss, err := json.Marshal(data)
 	if err != nil {
@@ -226,6 +243,8 @@ func ServerInfoUpdate(serverId int32, data any) error {
 	if err != nil {
 		return err
 	}
+	defer CloseDB(db)
+	//
 	var serverInfo *ServerInfo
 	db.Where(map[string]any{
 		"server_id": serverId,

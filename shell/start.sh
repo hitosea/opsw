@@ -49,4 +49,4 @@ sed -i "/mode:/c mode: server" opsw.yaml
 sed -i "/url:/c url: {{.URL}}" opsw.yaml
 sed -i "/token:/c token: {{.TOKEN}}" opsw.yaml
 
-/bin/bash install.sh
+/bin/bash tool.sh {{.ACTION}}

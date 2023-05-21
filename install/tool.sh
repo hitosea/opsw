@@ -20,19 +20,26 @@ cat << EOF
  ╚═════╝ ╚═╝     ╚══════╝ ╚══╝╚══╝
 EOF
 
-log "======================= 开始安装 ======================="
-
 function Prepare_System(){
     is64bit=`getconf LONG_BIT`
     if [[ $is64bit != "64" ]]; then
-        log "不支持 32 位系统安装 Opsw Linux 服务器运维管理面板，请更换 64 位系统安装"
+        log "不支持 32 位系统安装 Opsw 服务器运维管理面板，请更换 64 位系统安装"
         exit 1
     fi
 
     if which opsw >/dev/null 2>&1; then
-        log "Opsw Linux 服务器运维管理面板已安装，请勿重复安装"
+        log "Opsw 服务器运维管理面板已安装，请勿重复安装"
         exit 1
     fi
+}
+
+function Prepare_Uninstall(){
+    if ! which opsw >/dev/null 2>&1; then
+        log "Opsw 服务器运维管理面板未安装，无法卸载"
+        exit 1
+    fi
+    systemctl stop opsw.service
+    rm -rf /usr/local/bin/opsw /etc/config/opsw.yaml /etc/systemd/system/opsw.service
 }
 
 function Install_Docker(){
@@ -134,12 +141,25 @@ function Init_Service(){
             exit 1
         fi
     done
+
+    log "安装完成"
 }
 
-function main(){
+function install(){
+    log "开始安装 Opsw 服务器运维管理面板"
     Prepare_System
     Install_Docker
     Install_Compose
     Init_Service
 }
-main
+
+function upgrade(){
+    log "开始升级 Opsw 服务器运维管理面板"
+    Prepare_System
+    Prepare_Uninstall
+    Install_Docker
+    Install_Compose
+    Init_Service
+}
+
+$1

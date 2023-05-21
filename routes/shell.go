@@ -8,10 +8,12 @@ import (
 
 // NoAuthApiShellStartSh 启动脚本（添加服务器）
 func (app *AppStruct) NoAuthApiShellStartSh() {
+	action := utils.GinInput(app.Context, "action")
 	token := utils.GinInput(app.Context, "token")
 	app.Context.String(http.StatusOK, utils.Shell("/start.sh", map[string]any{
-		"URL":   fmt.Sprintf("%s/ws", utils.GinHomeUrl(app.Context)),
-		"TOKEN": token,
+		"URL":    fmt.Sprintf("%s/ws", utils.GinHomeUrl(app.Context)),
+		"TOKEN":  token,
+		"ACTION": action,
 	}))
 }
 
