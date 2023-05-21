@@ -32,3 +32,23 @@ CREATE TABLE IF NOT EXISTS server_users (
     created_at integer NOT NULL,
     updated_at integer NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS server_infos (
+    id integer NOT NULL PRIMARY KEY {{.INCREMENT}},
+    hostname VARCHAR(255) NOT NULL,
+    os VARCHAR(255) NOT NULL,
+    platform VARCHAR(255) NOT NULL,
+    platform_family VARCHAR(255) NOT NULL,
+    platform_version VARCHAR(255) NOT NULL,
+    kernel_arch VARCHAR(255) NOT NULL,
+    kernel_version VARCHAR(255) NOT NULL,
+    virtualization_system VARCHAR(255) NOT NULL,
+    cpu_cores integer NOT NULL,
+    cpu_logical_cores integer NOT NULL,
+    cpu_model_name VARCHAR(255) NOT NULL,
+    current_info TEXT NOT NULL,
+    version VARCHAR(255) NOT NULL,
+    commit_sha VARCHAR(255) NOT NULL,
+    created_at integer NOT NULL,
+    updated_at integer NOT NULL
+);

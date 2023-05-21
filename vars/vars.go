@@ -11,4 +11,6 @@ const (
 	WsOffline      = 2 // 断开
 	WsSendMsg      = 3 // 消息发送
 	WsOnlineClient = 4 // 获取在线客户端
+
+	WsServerInfo = 10001 // 获取在线客户端
 )

@@ -149,7 +149,9 @@ func (app *AppStruct) wsHandleUserMsg(conn *websocket.Conn, msg vars.WsMsgStruct
 
 // 处理服务器消息
 func (app *AppStruct) wsHandleServerMsg(conn *websocket.Conn, msg vars.WsMsgStruct) {
-
+	if msg.Type == vars.WsServerInfo {
+		fmt.Println(msg.Data)
+	}
 }
 
 // 客户端上线
