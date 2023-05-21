@@ -1,8 +1,4 @@
 *_test.go
-/release/
-opsw_*.tar.gz
 .cache*
 opsw
-custom.yaml
-custom.yml
 test.*

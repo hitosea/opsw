@@ -27,6 +27,15 @@ func GinInput(c *gin.Context, key string) string {
 	return strings.TrimSpace(c.Query(key))
 }
 
+// GinScheme Gin获取Scheme
+func GinScheme(c *gin.Context) string {
+	scheme := "http://"
+	if c.Request.TLS != nil || c.Request.Header.Get("X-Forwarded-Proto") == "https" {
+		scheme = "https://"
+	}
+	return scheme
+}
+
 // GinGetCookie Gin获取Cookie
 func GinGetCookie(c *gin.Context, name string) string {
 	value, _ := c.Cookie(name)
