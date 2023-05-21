@@ -25,7 +25,8 @@ fi
 
 echo "开始下载 ${VERSION} 版本在线安装包"
 
-package_file_name="opsw-${PLATFORM}-${FRAMEWORK}.tar.gz"
+package_name=$(echo "opsw-${PLATFORM}-${FRAMEWORK}" | tr '[A-Z]' '[a-z]')
+package_file_name="${package_name}.tar.gz"
 package_download_url="https://github.com/hitosea/opsw/releases/download/${VERSION}/${package_file_name}"
 
 echo "安装包下载地址： ${package_download_url}"
@@ -43,7 +44,7 @@ if [ $? != 0 ];then
 	exit 1
 fi
 
-cd opsw-${PLATFORM}-${FRAMEWORK}
+cd ${package_name}
 sed -i "/mode:/c mode: server" opsw.yaml
 sed -i "/url:/c url: {{.URL}}" opsw.yaml
 sed -i "/token:/c token: {{.TOKEN}}" opsw.yaml

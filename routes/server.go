@@ -10,6 +10,7 @@ import (
 	"opsw/vars"
 	"os"
 	"os/exec"
+	"time"
 )
 
 // AuthApiServerCreate 添加服务器
@@ -82,18 +83,18 @@ func (app *AppStruct) AuthApiServerCreate() {
 		utils.GinResult(app.Context, http.StatusBadRequest, "添加服务器失败", gin.H{"error": err.Error()})
 	} else {
 		start := fmt.Sprintf("%s/api/shell/start.sh?token=%s", utils.GinHomeUrl(app.Context), server.Token)
-		curl := utils.Base64Encode(fmt.Sprintf("curl -sSL '%s' | bash", start))
-		logf := utils.CacheDir("logs/server/%s", server.Id)
+		curl := fmt.Sprintf("curl -sSL '%s' | bash", start)
+		logf := utils.CacheDir("/logs/server/%s/deploy.log", server.Ip)
 		cmd := fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --log %s >/dev/null 2>&1 &",
 			runFile,
 			server.Ip,
 			server.Port,
 			server.Username,
-			server.Password,
-			curl,
-			logf,
-		)
+			utils.Base64Encode(server.Password),
+			utils.Base64Encode(curl),
+			logf)
 		fmt.Println(cmd)
+		_ = utils.WriteFile(logf, fmt.Sprintf("开始部署服务器 %s\n", utils.FormatYmdHis(time.Now())))
 		_, _ = utils.Cmd("-c", cmd)
 		utils.GinResult(app.Context, http.StatusOK, "添加服务器成功", server)
 	}

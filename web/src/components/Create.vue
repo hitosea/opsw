@@ -15,7 +15,7 @@
             <n-input v-model:value="formData.username" placeholder="SSH登录用户名，默认：root"/>
         </n-form-item>
         <n-form-item path="password" label="密码">
-            <n-input v-model:value="formData.password" placeholder="SSH登录密码，默认：(空)"/>
+            <n-input v-model:value="formData.password" type="password" placeholder="SSH登录密码，默认：(空)"/>
         </n-form-item>
         <n-form-item v-show="advancedShow" path="port" label="端口">
             <n-input v-model:value="formData.port" placeholder="SSH登录端口，默认：22"/>

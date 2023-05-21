@@ -67,8 +67,8 @@ func execStart() {
 	logger.Info("---------- exec start ----------")
 
 	key := utils.GenerateString(32)
-	cmdFile := utils.CacheDir("/tmp/.exec_%s", key)
-	resFile := utils.CacheDir("/tmp/.exec_%s_result", key)
+	cmdFile := fmt.Sprintf("/tmp/.exec_%s", key)
+	resFile := fmt.Sprintf("/tmp/.exec_%s_result", key)
 	err := execConf.SSHConfig.SaveFileAndChmodX(execConf.Host, cmdFile, utils.Shell("/exec.sh", map[string]any{
 		"CMD":      execConf.Cmd,
 		"END_TAG":  "success",
