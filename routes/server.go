@@ -85,8 +85,7 @@ func (app *AppStruct) AuthApiServerCreate() {
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "添加服务器失败", gin.H{"error": err.Error()})
 	} else {
-		start := fmt.Sprintf("%s/api/shell/start.sh?token=%s", utils.GinHomeUrl(app.Context), server.Token)
-		command := fmt.Sprintf("curl -sSL '%s' | bash", start)
+		command := fmt.Sprintf("content://%s/api/shell/start.sh?token=%s", utils.GinHomeUrl(app.Context), server.Token)
 		url := fmt.Sprintf("%s/api/server/create/notify?token=%s", utils.GinHomeUrl(app.Context), server.Token)
 		logf := utils.CacheDir("/logs/server/%s/deploy.log", server.Ip)
 		cmd := fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --url %s --log %s >/dev/null 2>&1 &",
@@ -198,6 +197,12 @@ func (app *AppStruct) AuthApiServerLog() {
 	if tail > 10000 {
 		tail = 10000
 	}
+	if _, err := database.ServerGet(map[string]any{
+		"ip": ip,
+	}, app.UserInfo.Id, false); err != nil {
+		utils.GinResult(app.Context, http.StatusBadRequest, "读取失败", gin.H{"error": err.Error()})
+		return
+	}
 	logFile := utils.CacheDir("/logs/server/%s/deploy.log", ip)
 	if !utils.IsFile(logFile) {
 		utils.GinResult(app.Context, http.StatusBadRequest, "日志文件不存在")
@@ -211,4 +216,24 @@ func (app *AppStruct) AuthApiServerLog() {
 	utils.GinResult(app.Context, http.StatusOK, "读取成功", gin.H{
 		"log": logContent,
 	})
+}
+
+func (app *AppStruct) AuthApiServerOperation() {
+	ip := app.Context.Query("ip")
+	operation := app.Context.Query("operation")
+	status := map[string]string{
+		"delete": "Deleting",
+	}[operation]
+	if status == "" {
+		utils.GinResult(app.Context, http.StatusBadRequest, "操作类型错误")
+		return
+	}
+	_, err := database.ServerDelete(map[string]any{
+		"ip": ip,
+	}, app.UserInfo.Id)
+	if err != nil {
+		utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
+		return
+	}
+	utils.GinResult(app.Context, http.StatusOK, "操作成功")
 }

@@ -41,7 +41,7 @@ func (app *AppStruct) Entry() {
 	} else if strings.HasPrefix(utils.Base64Decode(token), "s:") {
 		if info, err := database.ServerGet(map[string]any{
 			"token": token,
-		}); err == nil {
+		}, -1, false); err == nil {
 			app.ServerInfo = info
 		}
 	}

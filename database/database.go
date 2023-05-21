@@ -111,7 +111,7 @@ func UserCreate(email, name, password string) (*User, error) {
 	return user, nil
 }
 
-func ServerGet(query any) (*Server, error) {
+func ServerGet(query any, userId int32, owner bool) (*Server, error) {
 	db, err := InDB(vars.Config.DB)
 	if err != nil {
 		return nil, err
@@ -122,6 +122,51 @@ func ServerGet(query any) (*Server, error) {
 	db.Where(query).Last(&server)
 	if server.Id == 0 {
 		return nil, errors.New("服务器不存在")
+	}
+	if userId > -1 || owner {
+		if userId == 0 {
+			return nil, errors.New("没有权限-1")
+		}
+		var serverUser *ServerUser
+		db.Where(map[string]any{
+			"server_id": server.Id,
+			"user_id":   userId,
+		}).Last(&serverUser)
+		if serverUser.Id == 0 {
+			return nil, errors.New("没有权限-2")
+		}
+		if owner {
+			if serverUser.OwnerId != userId {
+				return nil, errors.New("没有权限-3")
+			}
+		}
+	}
+	return server, nil
+}
+
+func ServerDelete(query any, userId int32) (*Server, error) {
+	db, err := InDB(vars.Config.DB)
+	if err != nil {
+		return nil, err
+	}
+	defer CloseDB(db)
+	//
+	server, err := ServerGet(query, userId, true)
+	if err != nil {
+		return nil, err
+	}
+	err = db.Transaction(func(tx *gorm.DB) error {
+		err = tx.Delete(&server).Error
+		if err != nil {
+			return err
+		}
+		err = tx.Delete(&ServerUser{
+			ServerId: server.Id,
+		}).Error
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 	return server, nil
 }
