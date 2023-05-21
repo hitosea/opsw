@@ -147,8 +147,9 @@ func (app *AppStruct) AuthApiServerList() {
 	list := &[]database.ServerList{}
 	err = db.
 		Model(&database.Server{}).
-		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id").
+		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id, server_infos.hostname, server_infos.platform, server_infos.platform_version, server_infos.version").
 		Joins("left join server_users on server_users.server_id = servers.id").
+		Joins("left join server_infos on server_infos.server_id = servers.id").
 		Limit(100).
 		Scan(&list).Error
 	if err != nil {
@@ -163,6 +164,10 @@ func (app *AppStruct) AuthApiServerList() {
 					if v.Type == "server" && v.Uid == s.Id {
 						(*list)[i].State = "Online"
 					}
+				}
+				(*list)[i].Upgrade = ""
+				if strings.Compare(vars.Version, s.Version) > 0 {
+					(*list)[i].Upgrade = vars.Version
 				}
 			}
 		}

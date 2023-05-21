@@ -39,9 +39,17 @@ type ServerUser struct {
 
 type ServerList struct {
 	Server
+
 	ServerId int32 `json:"server_id"`
 	UserId   int32 `json:"user_id"`
 	OwnerId  int32 `json:"owner_id"`
+
+	Hostname        string `json:"hostname"`
+	Platform        string `json:"platform"`
+	PlatformVersion string `json:"platform_version"`
+	Version         string `json:"version"`
+
+	Upgrade string `json:"upgrade"`
 }
 
 type ServerInfo struct {

@@ -49,7 +49,7 @@
                                         <li v-if="item['remark']" class="remark">{{ item['remark'] }}</li>
                                     </ul>
                                 </div>
-                                <div class="release">{{ systemsFormat(item['systems'], 'release') }}</div>
+                                <div class="release">{{ item['platform'] }}-{{ item['platform_version'] }}</div>
                                 <div class="state">
                                     <div v-if="stateJudge(item, 'Online')" class="run">
                                         <n-badge type="success" show-zero dot />
@@ -174,6 +174,10 @@ export default defineComponent({
                 type: 'divider',
                 key: 'd1'
             }, {
+                label: '升级',
+                key: 'upgrade',
+                disabled: false,
+            }, {
                 label: '删除',
                 key: "delete",
             }
@@ -183,7 +187,9 @@ export default defineComponent({
             if (option.disabled === true) {
                 return option.label as VNodeChild
             }
-            if (option.key === 'delete') {
+            if (option.key === 'upgrade') {
+                return `${option.label} (${operationItem.value.upgrade})` as VNodeChild
+            } else if (option.key === 'delete') {
                 return h(
                     'span',
                     {
@@ -200,7 +206,16 @@ export default defineComponent({
         const operationShow = (show: boolean, item) => {
             if (show) {
                 operationItem.value = item
+                operationSetDisabled('upgrade', item.upgrade === "")
             }
+        }
+
+        const operationSetDisabled = (key: string, disabled: boolean) => {
+            operationMenu.value.forEach(item => {
+                if (item.key === key) {
+                    item['disabled'] = disabled
+                }
+            })
         }
 
         const operationSelect = (key: string | number, item) => {
@@ -209,6 +224,17 @@ export default defineComponent({
             } else if (key === 'log') {
                 logIp.value = item.ip
                 logModal.value = true
+            } else if (key === 'upgrade') {
+                const dd = dialog.warning({
+                    title: '升级服务器',
+                    content: '确定要升级服务器吗？',
+                    positiveText: '确定',
+                    negativeText: '取消',
+                    onPositiveClick: () => {
+                        dd.loading = true
+                        return operationInstance('upgrade', item.ip)
+                    }
+                })
             } else if (key === 'delete') {
                 const dd = dialog.warning({
                     title: '删除服务器',
