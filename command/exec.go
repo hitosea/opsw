@@ -8,7 +8,6 @@ import (
 	"opsw/utils/logger"
 	"opsw/vars"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -98,23 +97,22 @@ func execStart() {
 }
 
 func response(err error) {
-	status := "success"
+	state := "success"
 	errorMsg := ""
 	if err != nil {
-		status = "error"
+		state = "error"
 		errorMsg = err.Error()
 	}
 
 	if strings.HasPrefix(execConf.Url, "http://") || strings.HasPrefix(execConf.Url, "https://") {
 		logger.Info("---------- callback start ----------")
 		ip, _ := utils.GetIpAndPort(execConf.Host)
-		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 		_, err := gohttp.NewRequest().
 			FormData(map[string]string{
-				"ip":        ip,
-				"status":    status,
-				"error":     errorMsg,
-				"timestamp": timestamp,
+				"ip":    ip,
+				"state": state,
+				"error": errorMsg,
+				"time":  utils.FormatYmdHis(time.Now()),
 			}).
 			Post(execConf.Url)
 		if err != nil {
