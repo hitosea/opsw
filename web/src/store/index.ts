@@ -1,37 +1,13 @@
 import {computed, watch, ref} from 'vue'
 import {ConfigProviderProps, createDiscreteApi, darkTheme, useOsTheme} from 'naive-ui'
-import utils from "./utils";
-import call from "./call";
+import utils from "../utils/utils";
+import result from "../utils/result";
+import local from "../utils/local";
+import {User} from "../api/interface/user";
+import {getUserInfo} from "../api/modules/user";
+import {WsModel, WsMsgModel} from "./interface";
+import {CONST} from "./constant";
 
-interface UserInfoModel {
-    id?: number
-    email?: string
-    name?: string
-    token?: string
-    avatar?: string
-    created_at?: string
-    updated_at?: string
-}
-
-interface WsModel {
-    ws: WebSocket,
-    msg: WsMsgModel,
-    uid: number,
-    rid: string,
-    timeout: any,
-    random: string,
-    openNum: number,
-    listener: object,
-}
-
-interface WsMsgModel {
-    action?: number     // 消息类型：1、上线；2、下线；3、消息
-    data?: any          // 消息内容
-
-    type?: string       // 客户端类型：user、server
-    cid?: number        // 客户端ID：用户ID、服务器ID
-    rid?: string        // 客户端随机ID
-}
 
 const wsRef = ref<WsModel>({
     uid: 0,
@@ -43,8 +19,7 @@ const wsRef = ref<WsModel>({
     openNum: 0,
     listener: {},
 })
-
-const userInfoRef = ref<UserInfoModel>({})
+const userInfoRef = ref<User.Info>({})
 const themeNameRef = ref('light')
 const themeRef = computed(() => {
     const {value} = themeNameRef
@@ -56,7 +31,7 @@ const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
 
 
 watch(themeNameRef, name => {
-    utils.IDBSave("themeName", name)
+    local.save("themeName", name)
 })
 
 watch(userInfoRef, info => {
@@ -65,20 +40,6 @@ watch(userInfoRef, info => {
         wsConnection()
     }
 })
-
-export const CONST = {
-    WsHeartbeat: 0,     // 心跳
-    WsOnline: 1,        // 连接
-    WsOffline: 2,       // 断开
-    WsSendMsg: 3,       // 消息发送
-    WsOnlineClient: 4,  // 获取在线客户端
-
-    WsServerInfo: 5001,     // 获取在线客户端
-    WsServerNotify: 5002,   // 回调通知
-
-    WsIsUser: "user",       // 会员
-    WsIsServer: "server",   // 服务器
-}
 
 export function useThemeName() {
     return themeNameRef
@@ -94,7 +55,7 @@ export function useWs() {
 
 export function loadUserInfo() {
     return new Promise((resolve, reject) => {
-        call.get<UserInfoModel>('user/info')
+        getUserInfo()
             .then(({data}) => {
                 if (utils.isEmpty(data.name)) {
                     data.name = data.email
@@ -197,8 +158,8 @@ export function dialogProvider() {
 
 export function siteSetup() {
     return {
-        resultCode: utils.resultCode(),
-        resultMsg: utils.resultMsg(),
+        resultCode: result.code(),
+        resultMsg: result.msg(),
         themeName: themeNameRef,
         theme: themeRef,
     }
@@ -206,7 +167,7 @@ export function siteSetup() {
 
 export function init() {
     return new Promise<void>(async (resolve) => {
-        themeNameRef.value = <string>await utils.IDBString("themeName")
+        themeNameRef.value = <string>await local.string("themeName")
         if (['light', 'dark'].indexOf(themeNameRef.value) === -1) {
             themeNameRef.value = useOsTheme().value
         }

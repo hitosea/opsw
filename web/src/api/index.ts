@@ -1,31 +1,25 @@
-import axios, {AxiosInstance} from 'axios'
-import utils from "./utils";
-import {dialogProvider} from "./index";
+import axios, {AxiosInstance, AxiosRequestConfig} from 'axios'
+import utils from "../utils/utils";
+import {dialogProvider} from "../store";
+import {ResultData} from "./interface/result";
 
-interface Result {
-    code: number;
-    msg: string
+const config = {
+    baseURL: '/api', // 所有的请求地址前缀部分
+    timeout: 60000, // 请求超时时间毫秒
+    withCredentials: true, // 异步请求携带cookie
+    headers: {
+        // 设置后端需要的传参类型
+        'Content-Type': 'application/x-www-form-urlencoded',
+    },
 }
 
-interface ResultData<T = any> extends Result {
-    data?: T;
-}
-
-class call {
+class RequestHttp {
     // 定义成员变量并指定类型
     service: AxiosInstance;
 
-    public constructor() {
+    public constructor(config: AxiosRequestConfig) {
         // 实例化axios
-        this.service = axios.create({
-            baseURL: '/api', // 所有的请求地址前缀部分
-            timeout: 60000, // 请求超时时间毫秒
-            withCredentials: true, // 异步请求携带cookie
-            headers: {
-                // 设置后端需要的传参类型
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        });
+        this.service = axios.create(config);
 
         /**
          * 请求拦截器
@@ -126,4 +120,4 @@ class call {
     }
 }
 
-export default new call()
+export default new RequestHttp(config);

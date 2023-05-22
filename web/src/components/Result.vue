@@ -1,9 +1,9 @@
 <template>
     <div class="result">
         <n-result
-                :status="status"
-                :title="title"
-                :description="desc">
+            :status="status"
+            :title="title"
+            :description="desc">
             <template #footer>
                 <n-button @click="goHome">返回首页</n-button>
             </template>
@@ -26,12 +26,13 @@
 </style>
 <script lang="ts">
 import {defineComponent, ref} from 'vue'
-import utils from '../store/utils'
+import utils from '../utils/utils'
+import result from "../utils/result";
 
 export default defineComponent({
     setup() {
-        let resultCode:any = utils.resultCode()
-        const resultMsg = utils.resultMsg()
+        let resultCode: any = result.code()
+        const resultMsg = result.msg()
 
         if (resultCode === 400) {
             resultCode = "info"

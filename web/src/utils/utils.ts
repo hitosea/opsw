@@ -1,8 +1,3 @@
-import Cookies from "js-cookie";
-import * as localforage from "localforage";
-
-localforage.config({name: 'web', storeName: 'common'});
-
 const utils = {
     /**
      * 简单判断IPv4地址
@@ -383,10 +378,10 @@ const utils = {
         let dateObj;
         if (v instanceof Date) {
             dateObj = v;
-        }else {
+        } else {
             if (typeof v === 'undefined') {
                 v = new Date().getTime();
-            }else if (/^(-)?\d{1,10}$/.test(v)) {
+            } else if (/^(-)?\d{1,10}$/.test(v)) {
                 v = v * 1000;
             } else if (/^(-)?\d{1,13}$/.test(v)) {
                 v = v * 1000;
@@ -434,121 +429,6 @@ const utils = {
             _ret = `${_str}${str}`
             return _ret.substring(_ret.length - length);
         }
-    },
-
-    /**
-     * 获取返回码
-     * @returns {*|number}
-     */
-    resultCode() {
-        return utils.parseInt(utils.urlParameter("result_code") || window['result_code'])
-    },
-
-    /**
-     * 获取返回消息
-     * @returns {*|string|string}
-     */
-    resultMsg() {
-        return decodeURIComponent(utils.urlParameter("result_msg") || window['result_msg'])
-    },
-
-    /**
-     * =============================================================================
-     * ********************************   cookie   *********************************
-     * =============================================================================
-     */
-
-    /**
-     * 获取cookie
-     * @param name
-     * @param defaultVal
-     * @returns {string}
-     * @constructor
-     */
-    GetCookie(name, defaultVal = "") {
-        return decodeURIComponent(Cookies.get(name)) || defaultVal
-    },
-
-    /**
-     * 设置cookie
-     * @param name
-     * @param value
-     * @constructor
-     */
-    SetCookie(name, value) {
-        Cookies.set(name, encodeURIComponent(value))
-    },
-
-    /**
-     * 删除cookie
-     * @param name
-     * @constructor
-     */
-    RemoveCookie(name) {
-        Cookies.remove(name)
-    },
-
-    /**
-     * =============================================================================
-     * *****************************   localForage   ******************************
-     * =============================================================================
-     */
-    __IDBTimer: {},
-
-    IDBSave(key, value, delay = 100) {
-        if (typeof utils.__IDBTimer[key] !== "undefined") {
-            clearTimeout(utils.__IDBTimer[key])
-            delete utils.__IDBTimer[key]
-        }
-        utils.__IDBTimer[key] = setTimeout(async _ => {
-            await localforage.setItem(key, value)
-        }, delay)
-    },
-
-    IDBDel(key) {
-        localforage.removeItem(key).then(_ => {
-        })
-    },
-
-    IDBSet(key, value) {
-        return localforage.setItem(key, value)
-    },
-
-    IDBRemove(key) {
-        return localforage.removeItem(key)
-    },
-
-    IDBClear() {
-        return localforage.clear()
-    },
-
-    IDBValue(key) {
-        return localforage.getItem(key)
-    },
-
-    async IDBString(key, def = "") {
-        const value = await utils.IDBValue(key)
-        return typeof value === "string" || typeof value === "number" ? value : def;
-    },
-
-    async IDBInt(key, def = 0) {
-        const value = await utils.IDBValue(key)
-        return typeof value === "number" ? value : def;
-    },
-
-    async IDBBoolean(key, def = false) {
-        const value = await utils.IDBValue(key)
-        return typeof value === "boolean" ? value : def;
-    },
-
-    async IDBArray(key, def = []) {
-        const value = await utils.IDBValue(key)
-        return utils.isArray(value) ? value : def;
-    },
-
-    async IDBJson(key, def = {}) {
-        const value = await utils.IDBValue(key)
-        return utils.isJson(value) ? value : def;
     },
 }
 

@@ -50,13 +50,9 @@
 </style>
 <script lang="ts">
 import {computed, defineComponent, ref} from 'vue'
-import {
-    FormInst,
-    FormItemRule,
-    FormRules, useDialog, useMessage
-} from 'naive-ui'
-import call from "../store/call";
-import utils from "../store/utils";
+import {FormInst, FormItemRule, FormRules, useMessage} from 'naive-ui'
+import call from "../api";
+import utils from "../utils/utils";
 
 interface ModelType {
     ips: string | object

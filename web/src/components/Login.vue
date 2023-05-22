@@ -80,10 +80,9 @@
 <script lang="ts">
 import {defineComponent, ref} from "vue";
 import {LogoGithub, AddCircleOutline} from "@vicons/ionicons5";
-import {FormInst, FormItemRule, FormRules, useMessage, useDialog
-} from 'naive-ui'
-import call from "../store/call";
-import utils from "../store/utils";
+import {FormInst, FormItemRule, FormRules, useMessage} from 'naive-ui'
+import call from "../api";
+import utils from "../utils/utils";
 
 
 export default defineComponent({
@@ -93,7 +92,6 @@ export default defineComponent({
     },
     setup() {
         const message = useMessage()
-        const dialog = useDialog()
         const loadIng = ref<boolean>(false)
         const formRef = ref<FormInst | null>(null)
         const formData = ref({

@@ -28,7 +28,7 @@
 </style>
 <script lang="ts">
 import {defineComponent, onBeforeUnmount, nextTick, ref} from 'vue'
-import call from "../store/call";
+import call from "../api";
 import {useDialog} from "naive-ui";
 
 export default defineComponent({

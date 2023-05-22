@@ -119,12 +119,12 @@
 </style>
 
 <script lang="ts">
-import {defineComponent, computed, h, ref, VNodeChild, Component} from "vue";
+import {defineComponent, computed, h, ref, VNodeChild} from "vue";
 import {useMessage, NButton} from 'naive-ui'
 import { RouterLink } from 'vue-router'
 import {EllipsisVertical} from "@vicons/ionicons5";
 import {useThemeName, useUserInfo, loadUserInfo} from '../store'
-import utils from "../store/utils";
+import cookie from "../utils/cookie";
 
 
 
@@ -205,7 +205,7 @@ export default defineComponent({
         }
         const handleMenuSelect = (key: string) => {
             if (key === 'logout') {
-                utils.RemoveCookie('result_token')
+                cookie.remove('result_token')
                 window.location.href = "/api/user/logout"
             } else {
                 message.warning('未知操作')

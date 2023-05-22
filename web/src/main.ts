@@ -1,16 +1,16 @@
 import {createApp} from 'vue'
 import App from './App.vue'
 import {init} from './store'
-import {routes} from './routes/routes'
-import createDemoRouter from './routes/router'
-import './style.less'
+import {router} from "./routes/router";
+import createDemoRouter from './routes'
+import './styles/common.less'
 
 const app = createApp(App)
-const router = createDemoRouter(app, routes)
-app.use(router)
+const route = createDemoRouter(app, router)
+app.use(route)
 
 init().then(() => {
-    router.isReady().then(() => {
+    route.isReady().then(() => {
         app.mount('#app')
     })
 })
