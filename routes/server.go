@@ -128,6 +128,12 @@ func (app *AppStruct) NoAuthApiServerNotify() {
 			utils.GinResult(app.Context, http.StatusBadRequest, "更新服务器状态失败", gin.H{"error": err.Error()})
 			return
 		}
+		app.wsNotifyServerUsers(vars.WsServerNotify, vars.WsClientStruct{
+			Conn: nil,
+			Type: vars.WsIsServer,
+			Cid:  server.Id,
+			Rid:  "api",
+		})
 	}
 	utils.GinResult(app.Context, http.StatusOK, fmt.Sprintf("%s服务器成功", action), gin.H{
 		"ip":    ip,

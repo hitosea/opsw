@@ -336,18 +336,22 @@ export default defineComponent({
             return item.state || 'Unknown'
         }
 
+        const wsTimer = ref(null)
         wsMsgListener("main", data => {
             if (data.type === CONST.WsIsServer) {
-                if (servers.value.find(item => item.id === data.cid)) {
-                    call.get("server/one", {
-                        id: data.cid
-                    }).then(({data}) => {
-                        const index = servers.value.findIndex(item => item.id === data.id)
-                        if (index !== -1) {
-                            servers.value.splice(index, 1, data)
-                        }
-                    })
-                }
+                wsTimer.value && clearTimeout(wsTimer.value)
+                wsTimer.value = setTimeout(_ => {
+                    if (servers.value.find(item => item.id === data.cid)) {
+                        call.get("server/one", {
+                            id: data.cid
+                        }).then(({data}) => {
+                            const index = servers.value.findIndex(item => item.id === data.id)
+                            if (index !== -1) {
+                                servers.value.splice(index, 1, data)
+                            }
+                        })
+                    }
+                }, 3000)
             }
         })
 
