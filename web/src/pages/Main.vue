@@ -46,16 +46,18 @@
                                 <div class="name">
                                     <ul>
                                         <li>{{ item['ip'] }}</li>
-                                        <li v-if="item['remark'] || item['hostname']" class="remark">{{ item['remark'] || item['hostname'] }}</li>
+                                        <li v-if="item['remark'] || item['hostname']" class="remark">
+                                            {{ item['remark'] || item['hostname'] }}
+                                        </li>
                                     </ul>
                                 </div>
                                 <div class="release">{{ item['platform'] }}-{{ item['platform_version'] }}</div>
                                 <div class="state">
                                     <div v-if="stateJudge(item, 'Online')" class="run">
-                                        <n-badge type="success" show-zero dot />
+                                        <n-badge type="success" show-zero dot/>
                                     </div>
                                     <div v-else-if="stateJudge(item, 'Offline')" class="run">
-                                        <n-badge color="grey" show-zero dot />
+                                        <n-badge color="grey" show-zero dot/>
                                     </div>
                                     <div v-else-if="stateLoading(item)" class="load">
                                         <Loading/>
@@ -119,11 +121,12 @@ import {useDialog, useMessage} from "naive-ui";
 import {AddOutline, EllipsisVertical, Reload, SearchOutline} from "@vicons/ionicons5";
 import Loading from "../components/Loading.vue";
 import Create from "../components/Create.vue";
-import call from "../api";
+import {ResultDialog} from "../api";
 import utils from "../utils/utils";
 import Log from "../components/Log.vue";
 import {wsMsgListener} from "../store";
 import {CONST} from "../store/constant";
+import {getServerList, getServerOne, operationServer} from "../api/modules/server";
 
 export default defineComponent({
     components: {
@@ -253,13 +256,13 @@ export default defineComponent({
 
         const operationInstance = (operation, ip) => {
             return new Promise((resolve) => {
-                call.get("server/operation", {operation, ip})
+                operationServer({operation, ip})
                     .then(({data, msg}) => {
                         message.success(msg)
                         setItemState(ip, data.state)
                         onLoad(false, true)
                     })
-                    .catch(call.dialog)
+                    .catch(ResultDialog)
                     .finally(() => {
                         resolve()
                     })
@@ -276,24 +279,26 @@ export default defineComponent({
             loadIng.value = true
             loadShow.value = showLoad
             //
-            call.get("server/list").then(({data}) => {
-                if (!utils.isArray(data.list)) {
-                    if (tip === true) {
-                        message.warning("暂无数据")
+            getServerList()
+                .then(({data}) => {
+                    if (!utils.isArray(data.list)) {
+                        if (tip === true) {
+                            message.warning("暂无数据")
+                        }
+                        servers.value = []
+                        return
                     }
-                    servers.value = []
-                    return
-                }
-                servers.value = data.list
-            }).catch(res => {
-                if (tip) {
-                    if (dLog.value) {
-                        dLog.value.destroy()
-                        dLog.value = null
+                    servers.value = data.list
+                })
+                .catch(res => {
+                    if (tip) {
+                        if (dLog.value) {
+                            dLog.value.destroy()
+                            dLog.value = null
+                        }
+                        dLog.value = ResultDialog(res)
                     }
-                    dLog.value = call.dialog(res)
-                }
-            }).finally(() => {
+                }).finally(() => {
                 loadIng.value = false
             })
         }
@@ -343,7 +348,7 @@ export default defineComponent({
                 wsTimer.value && clearTimeout(wsTimer.value)
                 wsTimer.value = setTimeout(_ => {
                     if (servers.value.find(item => item.id === data.cid)) {
-                        call.get("server/one", {
+                        getServerOne({
                             id: data.cid
                         }).then(({data}) => {
                             const index = servers.value.findIndex(item => item.id === data.id)
@@ -485,12 +490,14 @@ export default defineComponent({
 
                 .name {
                     width: 40%;
+
                     ul {
                         display: flex;
                         flex-direction: column;
                         justify-content: center;
                         padding: 0;
                         margin: 0;
+
                         > li {
                             list-style: none;
                             padding: 0 6px 0 0;
@@ -498,10 +505,12 @@ export default defineComponent({
                             overflow: hidden;
                             text-overflow: ellipsis;
                             white-space: nowrap;
+
                             &.remark {
                                 font-weight: normal;
                                 opacity: 0.5;
                                 user-select: auto;
+
                                 &:hover {
                                     opacity: 1;
                                 }
@@ -529,6 +538,7 @@ export default defineComponent({
                         align-items: center;
                         justify-content: center;
                     }
+
                     .run {
                         .n-badge {
                             transform: scale(1.2);

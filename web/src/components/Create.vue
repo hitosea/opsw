@@ -51,8 +51,9 @@
 <script lang="ts">
 import {computed, defineComponent, ref} from 'vue'
 import {FormInst, FormItemRule, FormRules, useMessage} from 'naive-ui'
-import call from "../api";
 import utils from "../utils/utils";
+import {createServer} from "../api/modules/server";
+import {ResultDialog} from "../api";
 
 interface ModelType {
     ips: string | object
@@ -66,7 +67,7 @@ export default defineComponent({
     setup(props, {emit}) {
         const message = useMessage()
         const loadIng = ref<number>(0)
-        const formRef = ref<FormInst | null>(null)
+        const formRef = ref<FormInst>()
         const formData = ref<ModelType>({
             ips: "",
         })
@@ -131,7 +132,7 @@ export default defineComponent({
                 }
                 ips.forEach(ip => {
                     loadIng.value++
-                    call.post('server/create', Object.assign(data, {ip}))
+                    createServer(Object.assign(data, {ip}))
                         .then(({msg}) => {
                             loadIng.value--
                             if (loadIng.value === 0) {
@@ -142,7 +143,7 @@ export default defineComponent({
                         .catch(res => {
                             loadIng.value--
                             if (loadIng.value === 0) {
-                                call.dialog(res)
+                                ResultDialog(res)
                             }
                         })
                 })

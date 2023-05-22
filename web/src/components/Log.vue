@@ -28,8 +28,9 @@
 </style>
 <script lang="ts">
 import {defineComponent, onBeforeUnmount, nextTick, ref} from 'vue'
-import call from "../api";
+import {ResultDialog} from "../api";
 import {useDialog} from "naive-ui";
+import {getServerLog} from "../api/modules/server";
 
 export default defineComponent({
     props: {
@@ -67,25 +68,28 @@ export default defineComponent({
                 return
             }
             loading.value = true
-            call.get('server/log', {ip: props.ip}).then(({data}) => {
-                const isBottom = scrollToBottom()
-                content.value = data.log
-                isBottom && nextTick(() => {
-                    nRef.value?.scrollTo({position: 'bottom'})
+            getServerLog({ip: props.ip})
+                .then(({data}) => {
+                    const isBottom = scrollToBottom()
+                    content.value = data.log
+                    isBottom && nextTick(() => {
+                        nRef.value?.scrollTo({position: 'bottom'})
+                    })
                 })
-            }).catch(res => {
-                if (dLog.value) {
-                    dLog.value.destroy()
-                    dLog.value = null
-                }
-                dLog.value = call.dialog(res, {
-                    onPositiveClick: () => {
-                        emit("update:show", false)
+                .catch(res => {
+                    if (dLog.value) {
+                        dLog.value.destroy()
+                        dLog.value = null
                     }
+                    dLog.value = ResultDialog(res, {
+                        onPositiveClick: () => {
+                            emit("update:show", false)
+                        }
+                    })
                 })
-            }).finally(() => {
-                loading.value = false
-            })
+                .finally(() => {
+                    loading.value = false
+                })
         }
         getData()
         const getInter = setInterval(getData, 15 * 1000)

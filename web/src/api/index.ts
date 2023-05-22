@@ -89,35 +89,34 @@ class RequestHttp {
     delete<T>(url: string, params?: object): Promise<ResultData<T>> {
         return this.service.delete(url, {params});
     }
-
-    // 自定义方法封装（提示框）
-    dialog({code, msg, data}, dialogOptions = {}) {
-        let title = '温馨提示'
-        let content = msg
-        if (code !== 200) {
-            title = '错误提示'
-            if (utils.isJson(data) && (data.err || data.error)) {
-                title = msg
-                content = data.err || data.error
-            }
-        }
-        let options = {
-            title,
-            content,
-            positiveText: '确定',
-        }
-        if (utils.isJson(data) && utils.isJson(data.dialog)) {
-            options = Object.assign(options, data.dialog)
-        }
-        if (utils.isJson(dialogOptions)) {
-            options = Object.assign(options, dialogOptions)
-        }
-        if (code === 200) {
-            return dialogProvider().success(options)
-        } else {
-            return dialogProvider().error(options)
-        }
-    }
 }
 
 export default new RequestHttp(config);
+
+export function ResultDialog({code, msg, data}, dialogOptions = {}) {
+    let title = '温馨提示'
+    let content = msg
+    if (code !== 200) {
+        title = '错误提示'
+        if (utils.isJson(data) && (data.err || data.error)) {
+            title = msg
+            content = data.err || data.error
+        }
+    }
+    let options = {
+        title,
+        content,
+        positiveText: '确定',
+    }
+    if (utils.isJson(data) && utils.isJson(data.dialog)) {
+        options = Object.assign(options, data.dialog)
+    }
+    if (utils.isJson(dialogOptions)) {
+        options = Object.assign(options, dialogOptions)
+    }
+    if (code === 200) {
+        return dialogProvider().success(options)
+    } else {
+        return dialogProvider().error(options)
+    }
+}

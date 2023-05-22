@@ -81,8 +81,9 @@
 import {defineComponent, ref} from "vue";
 import {LogoGithub, AddCircleOutline} from "@vicons/ionicons5";
 import {FormInst, FormItemRule, FormRules, useMessage} from 'naive-ui'
-import call from "../api";
+import {ResultDialog} from "../api";
 import utils from "../utils/utils";
+import {userLogin, userReg} from "../api/modules/user";
 
 
 export default defineComponent({
@@ -93,7 +94,7 @@ export default defineComponent({
     setup() {
         const message = useMessage()
         const loadIng = ref<boolean>(false)
-        const formRef = ref<FormInst | null>(null)
+        const formRef = ref<FormInst>()
         const formData = ref({
             type: "login",
             email: "",
@@ -163,15 +164,15 @@ export default defineComponent({
                 if (loadIng.value) {
                     return
                 }
-                loadIng.value = true
-                call.post(formData.value.type === 'reg' ? 'user/reg' : 'user/login', formData.value)
+                loadIng.value = true;
+                (formData.value.type === 'reg' ? userReg : userLogin)(formData.value)
                     .then(({msg}) => {
                         message.success(msg);
                         setTimeout(() => {
                             window.location.href = utils.removeURLParameter(window.location.href, ['result_code', 'result_msg'])
                         }, 300)
                     })
-                    .catch(call.dialog)
+                    .catch(ResultDialog)
                     .finally(() => {
                         loadIng.value = false
                     })
