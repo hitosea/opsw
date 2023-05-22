@@ -69,7 +69,7 @@ func execStart() {
 	conFile := fmt.Sprintf("/tmp/.exec_%s_content", key)
 	if strings.HasPrefix(execConf.Cmd, "content://") {
 		execConf.Cmd = execConf.Cmd[10:]
-		err := execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("curl -o %s -sSL '%s'", conFile, execConf.Cmd))
+		err := execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("curl -o %s -sSL '%s'", conFile, execConf.Cmd), "获取执行脚本...")
 		if err != nil {
 			response(err)
 			return
@@ -86,7 +86,7 @@ func execStart() {
 		return
 	}
 
-	err = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("sudo %s %s", cmdFile, execConf.Param))
+	err = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("sudo %s %s", cmdFile, execConf.Param), "开始执行脚本...")
 	if err != nil {
 		response(err)
 		return
@@ -100,9 +100,9 @@ func execStart() {
 
 	response(nil)
 
-	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", cmdFile))
-	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", resFile))
-	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", conFile))
+	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", cmdFile), "")
+	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", resFile), "")
+	_ = execConf.SSHConfig.CmdAsync(execConf.Host, fmt.Sprintf("rm -f %s", conFile), "")
 }
 
 func response(err error) {

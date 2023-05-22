@@ -321,13 +321,11 @@ export default defineComponent({
             const state = stateText(item)
             switch (state) {
                 case 'Failed':
-                    return {
-                        color: 'rgb(248,113,113)'
-                    }
                 case 'Unknown':
+                case 'Timeout':
                 case 'Error':
                     return {
-                        color: 'rgb(252,211,77)'
+                        color: 'rgb(248,113,113)'
                     }
                 default:
                     return {}

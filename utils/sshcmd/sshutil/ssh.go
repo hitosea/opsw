@@ -84,7 +84,10 @@ func readPipe(host string, pipe io.Reader, isErr bool) {
 
 func (ss *SSH) CmdAsync(host string, cmd string, desc ...string) error {
 	if desc != nil {
-		logger.Debug("[ssh] [%s] %s", host, strings.Join(desc, ""))
+		dd := strings.Join(desc, "")
+		if dd != "" {
+			logger.Debug("[ssh] [%s] %s", host, dd)
+		}
 	} else {
 		logger.Debug("[ssh] [%s] %s", host, cmd)
 	}

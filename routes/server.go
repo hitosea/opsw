@@ -158,13 +158,23 @@ func (app *AppStruct) AuthApiServerList() {
 		for i, s := range *list {
 			(*list)[i].Password = "******"
 			(*list)[i].Token = "******"
-			if s.State == "Installed" {
+			if s.State == "Installing" || s.State == "Upgrading" {
+				// 检查是否超时
+				logf := utils.CacheDir("/logs/server/%s/serve.log", s.Ip)
+				if fi, er := os.Stat(logf); er == nil {
+					if time.Now().Sub(fi.ModTime()).Minutes() > 10 {
+						(*list)[i].State = "Timeout" // 超过10分钟，认为超时
+					}
+				}
+			} else if s.State == "Installed" {
+				// 检查是否在线
 				(*list)[i].State = "Offline"
 				for _, v := range vars.WsClients {
 					if v.Type == "server" && v.Uid == s.Id {
 						(*list)[i].State = "Online"
 					}
 				}
+				// 检查是否有升级
 				(*list)[i].Upgrade = ""
 				if strings.Compare(vars.Version, s.Version) > 0 {
 					(*list)[i].Upgrade = vars.Version
