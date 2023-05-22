@@ -13,4 +13,7 @@ const (
 	WsOnlineClient = 4 // 获取在线客户端
 
 	WsServerInfo = 5001 // 获取在线客户端
+
+	WsIsUser   = "user"   // 会员
+	WsIsServer = "server" // 服务器
 )

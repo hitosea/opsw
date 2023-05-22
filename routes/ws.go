@@ -38,11 +38,11 @@ func (app *AppStruct) NoAuthWs() {
 	}
 	wsRid++
 	if app.UserInfo.Id > 0 {
-		client.Type = "user" // 用户
+		client.Type = vars.WsIsUser // 用户
 		client.Cid = app.UserInfo.Id
 		client.Rid = fmt.Sprintf("u-%d-%d", client.Cid, wsRid)
 	} else {
-		client.Type = "server" // 服务器
+		client.Type = vars.WsIsServer // 服务器
 		client.Cid = app.ServerInfo.Id
 		client.Rid = fmt.Sprintf("s-%d-%d", client.Cid, wsRid)
 	}
@@ -90,10 +90,10 @@ func (app *AppStruct) NoAuthWs() {
 			_ = conn.WriteMessage(websocket.TextMessage, sendMsg)
 			continue
 		}
-		if client.Type == "user" {
+		if client.Type == vars.WsIsUser {
 			// 用户消息
 			app.wsHandleUserMsg(client, msg)
-		} else if client.Type == "server" {
+		} else if client.Type == vars.WsIsServer {
 			// 服务器消息
 			app.wsHandleServerMsg(client, msg)
 		}
@@ -111,8 +111,8 @@ func (app *AppStruct) wsHandleUserMsg(client vars.WsClientStruct, msg vars.WsMsg
 		if toUid == 0 || msgData == nil {
 			return
 		}
-		if toType == "" {
-			toType = "user"
+		if toType != vars.WsIsServer {
+			toType = vars.WsIsUser
 		}
 		sendMsg, _ := json.Marshal(vars.WsMsgStruct{
 			Action: vars.WsSendMsg,
@@ -158,6 +158,7 @@ func (app *AppStruct) wsHandleServerMsg(client vars.WsClientStruct, msg vars.WsM
 			fmt.Printf("服务器信息更新失败：%s\n", err.Error())
 			return
 		}
+		app.wsNotifyServerUsers(vars.WsServerInfo, client)
 	}
 	if replyMsg != nil {
 		_ = client.Conn.WriteMessage(websocket.TextMessage, replyMsg)
@@ -174,7 +175,7 @@ func (app *AppStruct) wsOnlineClients(client vars.WsClientStruct) {
 	wsMutex.Lock()
 	vars.WsClients = append(vars.WsClients, client)
 	wsMutex.Unlock()
-	app.wsNotifyStateClients(vars.WsOnline, client)
+	app.wsNotifyServerUsers(vars.WsOnline, client)
 }
 
 // 客户端离线
@@ -185,15 +186,15 @@ func (app *AppStruct) wsOfflineClients(rid string) {
 			vars.WsClients = append(vars.WsClients[:k], vars.WsClients[k+1:]...)
 			_ = client.Conn.Close()
 			wsMutex.Unlock()
-			app.wsNotifyStateClients(vars.WsOffline, client)
+			app.wsNotifyServerUsers(vars.WsOffline, client)
 			break
 		}
 	}
 }
 
-// 通知客户端服务器在线状态
-func (app *AppStruct) wsNotifyStateClients(action int, client vars.WsClientStruct) {
-	if client.Type == "server" {
+// 通知服务器的用户
+func (app *AppStruct) wsNotifyServerUsers(action int, client vars.WsClientStruct) {
+	if client.Type == vars.WsIsServer {
 		sendMsg, err := json.Marshal(vars.WsMsgStruct{
 			Action: action,
 			Data:   map[string]any{},
@@ -206,7 +207,7 @@ func (app *AppStruct) wsNotifyStateClients(action int, client vars.WsClientStruc
 		}
 		for _, serverUser := range database.ServerUserList(client.Cid) {
 			for _, c := range vars.WsClients {
-				if c.Type == "user" && c.Cid == serverUser.UserId {
+				if c.Type == vars.WsIsUser && c.Cid == serverUser.UserId {
 					_ = c.Conn.WriteMessage(websocket.TextMessage, sendMsg)
 				}
 			}

@@ -122,7 +122,7 @@ import Create from "../components/Create.vue";
 import call from "../store/call";
 import utils from "../store/utils";
 import Log from "../components/Log.vue";
-import {wsMsgListener} from "../store";
+import {CONST, wsMsgListener} from "../store";
 
 export default defineComponent({
     components: {
@@ -147,17 +147,17 @@ export default defineComponent({
         const logIp = ref("");
         const loadIng = ref(false);
         const loadShow = ref(false);
-        const items = ref([])
+        const servers = ref([])
         const searchKey = ref("");
         const searchList = computed(() => {
             if (searchKey.value === "") {
-                return items.value
+                return servers.value
             }
-            return items.value.filter(item => `${item.ip} ${item.remark}`.indexOf(searchKey.value) !== -1)
+            return servers.value.filter(item => `${item.ip} ${item.remark}`.indexOf(searchKey.value) !== -1)
         })
 
         const setItemState = (ip, state) => {
-            items.value.forEach(item => {
+            servers.value.forEach(item => {
                 if (item.ip === ip) {
                     item.state = state
                 }
@@ -280,10 +280,10 @@ export default defineComponent({
                     if (tip === true) {
                         message.warning("暂无数据")
                     }
-                    items.value = []
+                    servers.value = []
                     return
                 }
-                items.value = data.list
+                servers.value = data.list
             }).catch(res => {
                 if (tip) {
                     if (dLog.value) {
@@ -336,8 +336,19 @@ export default defineComponent({
             return item.state || 'Unknown'
         }
 
-        wsMsgListener("main", (data) => {
-            console.log("GGG",data);
+        wsMsgListener("main", data => {
+            if (data.type === CONST.WsIsServer) {
+                if (servers.value.find(item => item.id === data.cid)) {
+                    call.get("server/one", {
+                        id: data.cid
+                    }).then(({data}) => {
+                        const index = servers.value.findIndex(item => item.id === data.id)
+                        if (index !== -1) {
+                            servers.value.splice(index, 1, data)
+                        }
+                    })
+                }
+            }
         })
 
         return {

@@ -25,8 +25,12 @@ interface WsModel {
 }
 
 interface WsMsgModel {
-    type?: number
-    data?: any
+    action?: number     // 消息类型：1、上线；2、下线；3、消息
+    data?: any          // 消息内容
+
+    type?: string       // 客户端类型：user、server
+    cid?: number        // 客户端ID：用户ID、服务器ID
+    rid?: string        // 客户端随机ID
 }
 
 const wsRef = ref<WsModel>({
@@ -61,6 +65,19 @@ watch(userInfoRef, info => {
         wsConnection()
     }
 })
+
+export const CONST = {
+    WsHeartbeat: 0,     // 心跳
+    WsOnline: 1,        // 连接
+    WsOffline: 2,       // 断开
+    WsSendMsg: 3,       // 消息发送
+    WsOnlineClient: 4,  // 获取在线客户端
+
+    WsServerInfo: 5001, // 获取在线客户端
+
+    WsIsUser: "user",       // 会员
+    WsIsServer: "server",   // 服务器
+}
 
 export function useThemeName() {
     return themeNameRef
@@ -134,25 +151,24 @@ export function wsConnection() {
     };
     wsRef.value.ws.onmessage = async (e) => {
         wgLog && console.log("[WS] Message", e);
-        const msgDetail: WsMsgModel = utils.jsonParse(e.data);
-        wsRef.value.msg = msgDetail;
+        const wsMsg: WsMsgModel = utils.jsonParse(e.data);
+        wsRef.value.msg = wsMsg;
         //
-        if (msgDetail.type === 1) {
+        if (wsMsg.action === CONST.WsOnline) {
             // 连接成功
-            if (msgDetail.data.own === 1) {
-                wsRef.value.rid = msgDetail.data.rid
+            if (wsMsg.data.own === 1) {
+                wsRef.value.rid = wsMsg.data.rid
             }
         }
         Object.values(wsRef.value.listener).forEach(call => {
             if (typeof call === "function") {
                 try {
-                    call(msgDetail);
+                    call(wsMsg);
                 } catch (err) {
                     wgLog && console.log("[WS] Callerr", err);
                 }
             }
         });
-        console.log(msgDetail);
     }
 }
 

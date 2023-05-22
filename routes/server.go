@@ -164,7 +164,15 @@ func (app *AppStruct) AuthApiServerList() {
 
 // AuthApiServerOne 服务器详情
 func (app *AppStruct) AuthApiServerOne() {
+	id, _ := strconv.Atoi(app.Context.Query("id"))
 	ip := app.Context.Query("ip")
+	//
+	where := map[string]any{}
+	if id > 0 {
+		where["servers.id"] = id
+	} else {
+		where["servers.ip"] = ip
+	}
 	//
 	db, err := database.InDB(vars.Config.DB)
 	if err != nil {
@@ -172,41 +180,47 @@ func (app *AppStruct) AuthApiServerOne() {
 	}
 	defer database.CloseDB(db)
 	//
-	info := &database.ServerItem{}
+	one := &database.ServerItem{}
 	err = db.
 		Model(&database.Server{}).
-		Where(map[string]any{
-			"servers.ip": ip,
-		}).
+		Where(where).
 		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id, server_infos.hostname, server_infos.platform, server_infos.platform_version, server_infos.version").
 		Joins("left join server_users on server_users.server_id = servers.id").
 		Joins("left join server_infos on server_infos.server_id = servers.id").
-		Last(&info).Error
+		Last(&one).Error
 	//
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "获取服务器详情失败", gin.H{"error": err.Error()})
 		return
 	}
-	utils.GinResult(app.Context, http.StatusOK, "服务器详情", gin.H{"info": database.ServerFormat(info)})
+	utils.GinResult(app.Context, http.StatusOK, "服务器详情", database.ServerFormat(one))
 }
 
 // AuthApiServerLog 查看服务器日志
 func (app *AppStruct) AuthApiServerLog() {
+	id, _ := strconv.Atoi(app.Context.Query("id"))
 	ip := app.Context.Query("ip")
 	tail, _ := strconv.Atoi(app.Context.Query("tail"))
+	//
+	where := map[string]any{}
+	if id > 0 {
+		where["id"] = id
+	} else {
+		where["ip"] = ip
+	}
 	if tail <= 0 {
 		tail = 200
 	}
 	if tail > 10000 {
 		tail = 10000
 	}
-	if _, err := database.ServerGet(map[string]any{
-		"ip": ip,
-	}, app.UserInfo.Id, false); err != nil {
+	//
+	server, err := database.ServerGet(where, app.UserInfo.Id, false)
+	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "读取失败", gin.H{"error": err.Error()})
 		return
 	}
-	logf := utils.CacheDir("/logs/server/%s/serve.log", ip)
+	logf := utils.CacheDir("/logs/server/%s/serve.log", server.Ip)
 	if !utils.IsFile(logf) {
 		utils.GinResult(app.Context, http.StatusBadRequest, "日志文件不存在")
 		return
@@ -222,8 +236,16 @@ func (app *AppStruct) AuthApiServerLog() {
 }
 
 func (app *AppStruct) AuthApiServerOperation() {
+	id, _ := strconv.Atoi(app.Context.Query("id"))
 	ip := app.Context.Query("ip")
 	operation := app.Context.Query("operation")
+	//
+	where := map[string]any{}
+	if id > 0 {
+		where["id"] = id
+	} else {
+		where["ip"] = ip
+	}
 	//
 	runFile, err := exec.LookPath(os.Args[0])
 	if err != nil {
@@ -233,9 +255,7 @@ func (app *AppStruct) AuthApiServerOperation() {
 	//
 	if operation == "delete" {
 		// 删除服务器
-		server, err := database.ServerDelete(map[string]any{
-			"ip": ip,
-		}, app.UserInfo.Id)
+		server, err := database.ServerDelete(where, app.UserInfo.Id)
 		if err != nil {
 			utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
 			return
@@ -255,9 +275,7 @@ func (app *AppStruct) AuthApiServerOperation() {
 		utils.GinResult(app.Context, http.StatusOK, "操作成功")
 	} else if operation == "upgrade" {
 		// 升级服务器
-		server, err := database.ServerGet(map[string]any{
-			"ip": ip,
-		}, app.UserInfo.Id, true)
+		server, err := database.ServerGet(where, app.UserInfo.Id, true)
 		if err != nil {
 			utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
 			return

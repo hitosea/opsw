@@ -187,7 +187,7 @@ func ServerFormat(item *ServerItem) *ServerItem {
 		// 检查是否在线
 		item.State = "Offline"
 		for _, v := range vars.WsClients {
-			if v.Type == "server" && v.Cid == item.Id {
+			if v.Type == vars.WsIsServer && v.Cid == item.Id {
 				item.State = "Online"
 			}
 		}
