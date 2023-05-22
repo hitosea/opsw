@@ -8,7 +8,9 @@ import (
 	"gorm.io/gorm"
 	"opsw/utils"
 	"opsw/vars"
+	"os"
 	"strings"
+	"time"
 )
 
 func InDB(str string) (*gorm.DB, error) {
@@ -168,6 +170,34 @@ func ServerGet(query any, userId int32, owner bool) (*Server, error) {
 		}
 	}
 	return server, nil
+}
+
+func ServerFormat(item *ServerItem) *ServerItem {
+	item.Password = "******"
+	item.Token = "******"
+	if item.State == "Installing" || item.State == "Upgrading" {
+		// 检查是否超时
+		logf := utils.CacheDir("/logs/server/%s/serve.log", item.Ip)
+		if fi, er := os.Stat(logf); er == nil {
+			if time.Now().Sub(fi.ModTime()).Minutes() > 10 {
+				item.State = "Timeout" // 超过10分钟，认为超时
+			}
+		}
+	} else if item.State == "Installed" {
+		// 检查是否在线
+		item.State = "Offline"
+		for _, v := range vars.WsClients {
+			if v.Type == "server" && v.Cid == item.Id {
+				item.State = "Online"
+			}
+		}
+		// 检查是否有升级
+		item.Upgrade = ""
+		if strings.Compare(vars.Version, item.Version) > 0 {
+			item.Upgrade = vars.Version
+		}
+	}
+	return item
 }
 
 func ServerUpdate(server *Server) error {

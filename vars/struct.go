@@ -31,12 +31,17 @@ type WorkStruct struct {
 
 type WsClientStruct struct {
 	Conn *websocket.Conn `json:"conn"`
-	Type string          `json:"type"` // 用户类型：user、server
-	Uid  int32           `json:"uid"`  // 用户ID、服务器ID
-	Rid  string          `json:"rid"`  // 用户随机ID
+
+	Type string `json:"type"` // 客户端类型：user、server
+	Cid  int32  `json:"cid"`  // 客户端ID：用户ID、服务器ID
+	Rid  string `json:"rid"`  // 客户端随机ID
 }
 
 type WsMsgStruct struct {
-	Type int `json:"type"`
-	Data any `json:"data"`
+	Action int `json:"action"` // 消息类型：1、上线；2、下线；3、消息
+	Data   any `json:"data"`   // 消息内容
+
+	Type string `json:"type"` // 客户端类型：user、server
+	Cid  int32  `json:"cid"`  // 客户端ID：用户ID、服务器ID
+	Rid  string `json:"rid"`  // 客户端随机ID
 }

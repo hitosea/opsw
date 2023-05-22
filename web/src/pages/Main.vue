@@ -122,6 +122,7 @@ import Create from "../components/Create.vue";
 import call from "../store/call";
 import utils from "../store/utils";
 import Log from "../components/Log.vue";
+import {wsMsgListener} from "../store";
 
 export default defineComponent({
     components: {
@@ -334,6 +335,10 @@ export default defineComponent({
         const stateText = (item) => {
             return item.state || 'Unknown'
         }
+
+        wsMsgListener("main", (data) => {
+            console.log("GGG",data);
+        })
 
         return {
             createModal,

@@ -149,7 +149,10 @@ func onConnected() {
 	if err != nil {
 		logger.Error("获取基础信息失败: ", err.Error())
 	} else {
-		sendJson(vars.WsMsgStruct{Type: vars.WsServerInfo, Data: data})
+		sendJson(vars.WsMsgStruct{
+			Action: vars.WsServerInfo,
+			Data:   data,
+		})
 	}
 }
 

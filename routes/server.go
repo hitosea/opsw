@@ -144,7 +144,7 @@ func (app *AppStruct) AuthApiServerList() {
 	}
 	defer database.CloseDB(db)
 	//
-	list := &[]database.ServerList{}
+	list := &[]*database.ServerItem{}
 	err = db.
 		Model(&database.Server{}).
 		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id, server_infos.hostname, server_infos.platform, server_infos.platform_version, server_infos.version").
@@ -155,34 +155,39 @@ func (app *AppStruct) AuthApiServerList() {
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "获取服务器列表失败", gin.H{"error": err.Error()})
 	} else {
-		for i, s := range *list {
-			(*list)[i].Password = "******"
-			(*list)[i].Token = "******"
-			if s.State == "Installing" || s.State == "Upgrading" {
-				// 检查是否超时
-				logf := utils.CacheDir("/logs/server/%s/serve.log", s.Ip)
-				if fi, er := os.Stat(logf); er == nil {
-					if time.Now().Sub(fi.ModTime()).Minutes() > 10 {
-						(*list)[i].State = "Timeout" // 超过10分钟，认为超时
-					}
-				}
-			} else if s.State == "Installed" {
-				// 检查是否在线
-				(*list)[i].State = "Offline"
-				for _, v := range vars.WsClients {
-					if v.Type == "server" && v.Uid == s.Id {
-						(*list)[i].State = "Online"
-					}
-				}
-				// 检查是否有升级
-				(*list)[i].Upgrade = ""
-				if strings.Compare(vars.Version, s.Version) > 0 {
-					(*list)[i].Upgrade = vars.Version
-				}
-			}
+		for _, s := range *list {
+			database.ServerFormat(s)
 		}
 		utils.GinResult(app.Context, http.StatusOK, "服务器列表", gin.H{"list": list})
 	}
+}
+
+// AuthApiServerOne 服务器详情
+func (app *AppStruct) AuthApiServerOne() {
+	ip := app.Context.Query("ip")
+	//
+	db, err := database.InDB(vars.Config.DB)
+	if err != nil {
+		utils.GinResult(app.Context, http.StatusBadRequest, "数据库连接失败", gin.H{"error": err.Error()})
+	}
+	defer database.CloseDB(db)
+	//
+	info := &database.ServerItem{}
+	err = db.
+		Model(&database.Server{}).
+		Where(map[string]any{
+			"servers.ip": ip,
+		}).
+		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id, server_infos.hostname, server_infos.platform, server_infos.platform_version, server_infos.version").
+		Joins("left join server_users on server_users.server_id = servers.id").
+		Joins("left join server_infos on server_infos.server_id = servers.id").
+		Last(&info).Error
+	//
+	if err != nil {
+		utils.GinResult(app.Context, http.StatusBadRequest, "获取服务器详情失败", gin.H{"error": err.Error()})
+		return
+	}
+	utils.GinResult(app.Context, http.StatusOK, "服务器详情", gin.H{"info": database.ServerFormat(info)})
 }
 
 // AuthApiServerLog 查看服务器日志

@@ -58,7 +58,7 @@ watch(themeNameRef, name => {
 watch(userInfoRef, info => {
     if (wsRef.value.uid !== info.id) {
         wsRef.value.uid = info.id
-        websocketConnection()
+        wsConnection()
     }
 })
 
@@ -90,7 +90,7 @@ export function loadUserInfo() {
     })
 }
 
-export function websocketConnection() {
+export function wsConnection() {
     clearTimeout(wsRef.value.timeout);
     if (wsRef.value.ws) {
         wsRef.value.ws.close();
@@ -120,7 +120,7 @@ export function websocketConnection() {
         //
         clearTimeout(wsRef.value.timeout);
         wsRef.value.timeout = setTimeout(() => {
-            random === wsRef.value.random && websocketConnection();
+            random === wsRef.value.random && wsConnection();
         }, 3000);
     };
     wsRef.value.ws.onerror = async (e) => {
@@ -129,7 +129,7 @@ export function websocketConnection() {
         //
         clearTimeout(wsRef.value.timeout);
         wsRef.value.timeout = setTimeout(() => {
-            random === wsRef.value.random && websocketConnection();
+            random === wsRef.value.random && wsConnection();
         }, 3000);
     };
     wsRef.value.ws.onmessage = async (e) => {
@@ -156,8 +156,7 @@ export function websocketConnection() {
     }
 }
 
-export function websocketMsgListener(params) {
-    const {name, callback} = params;
+export function wsMsgListener(name, callback) {
     if (typeof callback === "function") {
         wsRef.value.listener[name] = callback;
     } else {
@@ -165,7 +164,7 @@ export function websocketMsgListener(params) {
     }
 }
 
-export function websocketClose() {
+export function wsClose() {
     if (wsRef.value.ws) {
         wsRef.value.ws.close();
         wsRef.value.ws = null;
