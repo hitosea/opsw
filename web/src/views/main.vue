@@ -124,9 +124,13 @@ import Create from "../components/Create.vue";
 import {ResultDialog} from "../api";
 import utils from "../utils/utils";
 import Log from "../components/Log.vue";
-import {wsMsgListener} from "../store";
 import {CONST} from "../store/constant";
 import {getServerList, getServerOne, operationServer} from "../api/modules/server";
+import {WsStore} from "../store/ws";
+
+const message = useMessage()
+const dialog = useDialog()
+const wsStore = WsStore()
 
 export default defineComponent({
     components: {
@@ -143,8 +147,6 @@ export default defineComponent({
         }
     },
     setup() {
-        const message = useMessage()
-        const dialog = useDialog()
         const dLog = ref(null);
         const createModal = ref(false);
         const logModal = ref(false);
@@ -343,7 +345,7 @@ export default defineComponent({
         }
 
         const wsTimer = ref({})
-        wsMsgListener("main", data => {
+        wsStore.listener("main", data => {
             if (data.type === CONST.WsIsServer) {
                 wsTimer.value[data.cid] && clearTimeout(wsTimer.value[data.cid])
                 wsTimer.value[data.cid] = setTimeout(_ => {

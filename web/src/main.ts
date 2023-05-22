@@ -1,13 +1,14 @@
 import {createApp} from 'vue'
 import App from './App.vue'
-import {init} from './store'
-import {router} from "./routes/router";
+import pinia, {init} from './store'
+import {routes} from "./routes/routes";
 import createDemoRouter from './routes'
 import './styles/common.less'
 
 const app = createApp(App)
-const route = createDemoRouter(app, router)
+const route = createDemoRouter(app, routes)
 app.use(route)
+app.use(pinia)
 
 init().then(() => {
     route.isReady().then(() => {

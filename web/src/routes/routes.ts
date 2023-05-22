@@ -1,4 +1,4 @@
-export const router = [
+export const routes = [
     {
         name: 'main',
         path: '/',

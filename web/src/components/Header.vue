@@ -123,17 +123,18 @@ import {defineComponent, computed, h, ref, VNodeChild} from "vue";
 import {useMessage, NButton} from 'naive-ui'
 import { RouterLink } from 'vue-router'
 import {EllipsisVertical} from "@vicons/ionicons5";
-import {useThemeName, useUserInfo, loadUserInfo} from '../store'
+import {useThemeName} from '../store'
 import cookie from "../utils/cookie";
+import {UserStore} from "../store/user";
 
-
+const userStore = UserStore()
+const message = useMessage()
 
 export default defineComponent({
     components: {EllipsisVertical},
     setup() {
-        loadUserInfo()
-        const message = useMessage()
-        const userInfo = useUserInfo()
+        userStore.refresh()
+        const userInfo = userStore.info
         const menuMap = computed(() => ({
             main: {
                 label: '服务器管理',

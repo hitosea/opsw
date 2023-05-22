@@ -1,3 +1,4 @@
+import {User} from "../../api/interface/user";
 
 export interface WsModel {
     ws: WebSocket,
@@ -17,4 +18,20 @@ export interface WsMsgModel {
     type?: string       // 客户端类型：user、server
     cid?: number        // 客户端ID：用户ID、服务器ID
     rid?: string        // 客户端随机ID
+}
+
+export interface UserState {
+    info: User.Info
+}
+
+export interface WsState {
+    ws: WebSocket,
+    msg: WsMsgModel,
+    uid: number,
+    rid: string,
+    timeout: any,
+    random: string,
+    openNum: number,
+    listener: object,
+    watch: boolean
 }
