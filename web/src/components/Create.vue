@@ -55,22 +55,12 @@ import utils from "../utils/utils";
 import {createServer} from "../api/modules/server";
 import {ResultDialog} from "../api";
 
-interface ModelType {
-    ips: string | object
-    username?: string | null
-    password?: string | null
-    port?: string | null
-    remark?: string | null
-}
-
 export default defineComponent({
     setup(props, {emit}) {
         const message = useMessage()
         const loadIng = ref<number>(0)
         const formRef = ref<FormInst>()
-        const formData = ref<ModelType>({
-            ips: "",
-        })
+        const formData = ref({})
         const ipsRef = ref(null)
         const ipsComputed = computed(() => {
             if (ipsRef.value == null) {

@@ -85,7 +85,6 @@ import {ResultDialog} from "../api";
 import utils from "../utils/utils";
 import {userLogin, userReg} from "../api/modules/user";
 
-
 export default defineComponent({
     components: {
         LogoGithub,

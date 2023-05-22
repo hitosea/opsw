@@ -1,6 +1,6 @@
 import axios, {AxiosInstance, AxiosRequestConfig} from 'axios'
 import utils from "../utils/utils";
-import {dialogProvider} from "../store";
+import {GlobalStore} from "../store";
 import {ResultData} from "./interface/result";
 
 const config = {
@@ -114,9 +114,10 @@ export function ResultDialog({code, msg, data}, dialogOptions = {}) {
     if (utils.isJson(dialogOptions)) {
         options = Object.assign(options, dialogOptions)
     }
+    const clobalStore = GlobalStore()
     if (code === 200) {
-        return dialogProvider().success(options)
+        return clobalStore.dialogProvider().success(options)
     } else {
-        return dialogProvider().error(options)
+        return clobalStore.dialogProvider().error(options)
     }
 }

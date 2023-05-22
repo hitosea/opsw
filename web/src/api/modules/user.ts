@@ -6,9 +6,9 @@ export const getUserInfo = () => {
 };
 
 export const userLogin = (params: User.LoginReq) => {
-    return http.post<User.Info>('user/login')
+    return http.post<User.Info>('user/login', params)
 };
 
 export const userReg = (params: User.RegReq) => {
-    return http.post<User.Info>('user/reg')
+    return http.post<User.Info>('user/reg', params)
 };

@@ -29,7 +29,6 @@
 <script lang="ts">
 import {defineComponent, onBeforeUnmount, nextTick, ref} from 'vue'
 import {ResultDialog} from "../api";
-import {useDialog} from "naive-ui";
 import {getServerLog} from "../api/modules/server";
 
 export default defineComponent({
@@ -43,8 +42,6 @@ export default defineComponent({
         },
     },
     setup(props, {emit}) {
-        const dialog = useDialog()
-
         const nRef = ref(null);
         const dLog = ref(null);
         const loading = ref(false);

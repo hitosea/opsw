@@ -1,53 +1,54 @@
-import {computed, watch, ref} from 'vue'
-import {createPinia} from 'pinia';
+import {computed} from 'vue'
+import {createPinia, defineStore} from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import {ConfigProviderProps, createDiscreteApi, darkTheme, useOsTheme} from 'naive-ui'
 import result from "../utils/result";
-import local from "../utils/local";
+import {GlobalState} from "./interface";
+import piniaPersistConfig from "./config/pinia-persist";
 
-const themeNameRef = ref('light')
-const themeRef = computed(() => {
-    const {value} = themeNameRef
-    return value === 'dark' ? darkTheme : null
-})
-const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
-    theme: themeRef.value
-}))
-
-
-watch(themeNameRef, name => {
-    local.save("themeName", name)
-})
-
-export function useThemeName() {
-    return themeNameRef
-}
-
-export function dialogProvider() {
-    const {dialog} = createDiscreteApi(['dialog'], {
-        configProviderProps: configProviderPropsRef,
-    })
-    return dialog
-}
-
-export function siteSetup() {
-    return {
-        resultCode: result.code(),
-        resultMsg: result.msg(),
-        themeName: themeNameRef,
-        theme: themeRef,
-    }
-}
-
-export function init() {
-    return new Promise<void>(async (resolve) => {
-        themeNameRef.value = <string>await local.string("themeName")
-        if (['light', 'dark'].indexOf(themeNameRef.value) === -1) {
-            themeNameRef.value = useOsTheme().value
+export const GlobalStore = defineStore({
+    id: 'GlobalState',
+    state: (): GlobalState => ({
+        isLoading: 0,
+        themeName: '',
+    }),
+    actions: {
+        setLoading() {
+            this.isLoading++;
+        },
+        cancelLoading() {
+            this.isLoading--;
+        },
+        setThemeName(name: string) {
+            this.themeName = name
+        },
+        async init() {
+            this.isLoading = 0
+            if (['light', 'dark'].indexOf(this.themeName) === -1) {
+                this.themeName = useOsTheme().value
+            }
+        },
+        appSetup() {
+            return {
+                resultCode: result.code(),
+                resultMsg: result.msg(),
+                themeName: this.themeName,
+                theme: computed(() => {
+                    return this.themeName === 'dark' ? darkTheme : null
+                }),
+            }
+        },
+        dialogProvider() {
+            const {dialog} = createDiscreteApi(['dialog'], {
+                configProviderProps: computed<ConfigProviderProps>(() => ({
+                    theme: this.themeName === 'dark' ? darkTheme : null
+                })),
+            })
+            return dialog
         }
-        resolve()
-    })
-}
+    },
+    persist: piniaPersistConfig('GlobalState'),
+});
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);

@@ -1,5 +1,5 @@
 import {defineStore} from 'pinia';
-import {WsMsgModel, WsState} from './interface';
+import {WsMsg, WsState} from './interface';
 import {UserStore} from "./user";
 import utils from "../utils/utils";
 import {CONST} from "./constant";
@@ -64,7 +64,7 @@ export const WsStore = defineStore({
             };
             this.ws.onmessage = async (e) => {
                 wgLog && console.log("[WS] Message", e);
-                const wsMsg: WsMsgModel = utils.jsonParse(e.data);
+                const wsMsg: WsMsg = utils.jsonParse(e.data);
                 this.msg = wsMsg;
                 //
                 if (wsMsg.action === CONST.WsOnline) {

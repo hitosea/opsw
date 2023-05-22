@@ -9,7 +9,7 @@
                         quaternary
                         class="name"
                         @click="handleThemeUpdate">
-                        {{ themeLabelMap[themeName] }}
+                        {{ themeLabel }}
                     </n-button>
                     <n-dropdown
                         v-if="userInfo.name"
@@ -123,16 +123,16 @@ import {defineComponent, computed, h, ref, VNodeChild} from "vue";
 import {useMessage, NButton} from 'naive-ui'
 import { RouterLink } from 'vue-router'
 import {EllipsisVertical} from "@vicons/ionicons5";
-import {useThemeName} from '../store'
+import {GlobalStore} from '../store'
 import cookie from "../utils/cookie";
 import {UserStore} from "../store/user";
-
-const userStore = UserStore()
-const message = useMessage()
 
 export default defineComponent({
     components: {EllipsisVertical},
     setup() {
+        const globalState = GlobalStore()
+        const userStore = UserStore()
+        const message = useMessage()
         userStore.refresh()
         const userInfo = userStore.info
         const menuMap = computed(() => ({
@@ -174,16 +174,15 @@ export default defineComponent({
         const menuOptions = [
             menuChildren('main'),
         ]
-        const themeLabelMap = computed(() => ({
-            dark: "浅色",
-            light: "深色"
-        }))
-        const themeName = useThemeName()
+        const themeLabel = computed(() => ({
+            dark: '浅色',
+            light: '深色',
+        })[globalState.themeName])
         const handleThemeUpdate = () => {
-            if (themeName.value === 'dark') {
-                themeName.value = 'light'
+            if (globalState.themeName === 'dark') {
+                globalState.setThemeName("light")
             } else {
-                themeName.value = 'dark'
+                globalState.setThemeName("dark")
             }
         }
         const userMenuOptions = ref([{
@@ -220,8 +219,7 @@ export default defineComponent({
             menuAction,
             menuOptions,
             // theme
-            themeName,
-            themeLabelMap,
+            themeLabel,
             handleThemeUpdate,
             //
             userMenuOptions,

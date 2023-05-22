@@ -128,10 +128,6 @@ import {CONST} from "../store/constant";
 import {getServerList, getServerOne, operationServer} from "../api/modules/server";
 import {WsStore} from "../store/ws";
 
-const message = useMessage()
-const dialog = useDialog()
-const wsStore = WsStore()
-
 export default defineComponent({
     components: {
         Log,
@@ -147,6 +143,9 @@ export default defineComponent({
         }
     },
     setup() {
+        const message = useMessage()
+        const dialog = useDialog()
+        const wsStore = WsStore()
         const dLog = ref(null);
         const createModal = ref(false);
         const logModal = ref(false);
@@ -512,10 +511,6 @@ export default defineComponent({
                                 font-weight: normal;
                                 opacity: 0.5;
                                 user-select: auto;
-
-                                &:hover {
-                                    opacity: 1;
-                                }
                             }
                         }
                     }

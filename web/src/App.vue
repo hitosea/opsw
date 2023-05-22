@@ -17,7 +17,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {siteSetup} from './store'
+import {GlobalStore} from './store'
 
 import Login from "./components/Login.vue";
 import Result from "./components/Result.vue";
@@ -28,7 +28,8 @@ export default defineComponent({
         Login,
     },
     setup() {
-        return siteSetup()
+        const globalstore = GlobalStore()
+        return globalstore.appSetup()
     }
 });
 </script>
