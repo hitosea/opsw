@@ -342,11 +342,11 @@ export default defineComponent({
             return item.state || 'Unknown'
         }
 
-        const wsTimer = ref(null)
+        const wsTimer = ref({})
         wsMsgListener("main", data => {
             if (data.type === CONST.WsIsServer) {
-                wsTimer.value && clearTimeout(wsTimer.value)
-                wsTimer.value = setTimeout(_ => {
+                wsTimer.value[data.cid] && clearTimeout(wsTimer.value[data.cid])
+                wsTimer.value[data.cid] = setTimeout(_ => {
                     if (servers.value.find(item => item.id === data.cid)) {
                         getServerOne({
                             id: data.cid

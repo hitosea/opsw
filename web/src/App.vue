@@ -19,7 +19,6 @@
 import {defineComponent} from "vue";
 import {siteSetup} from './store'
 
-import Main from "./pages/Main.vue";
 import Login from "./components/Login.vue";
 import Result from "./components/Result.vue";
 
@@ -27,7 +26,6 @@ export default defineComponent({
     components: {
         Result,
         Login,
-        Main,
     },
     setup() {
         return siteSetup()

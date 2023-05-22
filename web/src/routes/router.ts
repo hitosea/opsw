@@ -2,6 +2,6 @@ export const router = [
     {
         name: 'main',
         path: '/',
-        component: () => import('../pages/Main.vue')
+        component: () => import('../views/main.vue')
     }
 ]
