@@ -156,7 +156,7 @@ func (app *AppStruct) AuthApiServerList() {
 	defer database.CloseDB(db)
 	//
 	query := db.Model(&database.Server{}).
-		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id, server_infos.hostname, server_infos.platform, server_infos.platform_version, server_infos.version").
+		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id, server_infos.hostname, server_infos.platform, server_infos.platform_version, server_infos.version, server_infos.current_info").
 		Joins("left join server_users on server_users.server_id = servers.id").
 		Joins("left join server_infos on server_infos.server_id = servers.id")
 	if key != "" {
@@ -200,7 +200,7 @@ func (app *AppStruct) AuthApiServerOne() {
 	err = db.
 		Model(&database.Server{}).
 		Where(where).
-		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id, server_infos.hostname, server_infos.platform, server_infos.platform_version, server_infos.version").
+		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id, server_infos.hostname, server_infos.platform, server_infos.platform_version, server_infos.version, server_infos.current_info").
 		Joins("left join server_users on server_users.server_id = servers.id").
 		Joins("left join server_infos on server_infos.server_id = servers.id").
 		Last(&one).Error

@@ -271,7 +271,7 @@ func loadCurrentInfo(ioOption string, netOption string) database.ServerInfoCurre
 		}
 	}
 
-	currentInfo.ShotTime = time.Now()
+	currentInfo.ShotTime = utils.FormatYmdHis(time.Now())
 	return currentInfo
 }
 

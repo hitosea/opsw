@@ -21,7 +21,12 @@
                         </div>
                     </div>
                     <div class="interval"></div>
-                    <n-button type="success" :render-icon="addIcon" @click="createModal = true">
+                    <n-button type="success" @click="createModal = true">
+                        <template #icon>
+                            <n-icon>
+                                <AddOutline />
+                            </n-icon>
+                        </template>
                         添加服务器
                     </n-button>
                 </div>
@@ -38,6 +43,7 @@
                         <div class="name">服务器</div>
                         <div class="release">系统版本</div>
                         <div class="state">状态</div>
+                        <div class="uptime">运行时间</div>
                         <div class="menu">操作</div>
                     </div>
                     <n-list hoverable :show-divider="false">
@@ -69,6 +75,7 @@
                                     </div>
                                     <div class="text" :style="stateStyle(item)">{{ stateText(item) }}</div>
                                 </div>
+                                <div class="uptime">{{stateJudge(item, 'Online') ? uptime(item.current_info.time_since_uptime) : '-'}}</div>
                                 <n-dropdown
                                     trigger="click"
                                     :show-arrow="true"
@@ -126,7 +133,7 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, h, ref, VNodeChild, watch} from "vue";
+import {defineComponent, h, ref, VNodeChild, watch} from "vue";
 import Header from "../components/Header.vue";
 import {useDialog, useMessage} from "naive-ui";
 import {AddOutline, Pencil, EllipsisVertical, Reload, SearchOutline} from "@vicons/ionicons5";
@@ -140,7 +147,7 @@ import {getServerList, getServerOne, operationServer} from "../api/modules/serve
 import {WsStore} from "../store/ws";
 import EditText from "../components/EditText.vue";
 import {Server} from "../api/interface/server";
-import {GlobalStore} from "../store";
+import {GlobalStore, uptime} from "../store";
 
 export default defineComponent({
     components: {
@@ -150,6 +157,7 @@ export default defineComponent({
         Loading,
         Header,
         Reload,
+        AddOutline,
         EllipsisVertical,
     },
     setup() {
@@ -189,18 +197,45 @@ export default defineComponent({
         const operationItem = ref({})
         const operationMenu = ref([
             {
-                label: '详情',
-                key: 'info',
+                label: '应用商店',
+                key: 'manage/apps/all',
             }, {
-                label: '日志',
-                key: 'log',
+                label: '网站',
+                key: 'manage/websites',
+            }, {
+                label: '数据库',
+                key: 'manage/databases/mysql',
+            }, {
+                label: '容器',
+                key: 'manage/containers/container',
+            }, {
+                label: '计划任务',
+                key: 'manage/cronjobs',
             }, {
                 type: 'divider',
                 key: 'd1'
             }, {
+                label: '文件',
+                key: 'manage/hosts/files',
+            }, {
+                label: '监控',
+                key: 'manage/hosts/monitor/monitor',
+            }, {
+                label: '终端',
+                key: 'manage/hosts/terminal',
+            }, {
+                label: '防火墙',
+                key: 'manage/hosts/firewall/port',
+            }, {
+                type: 'divider',
+                key: 'd1'
+            }, {
+                label: '日志',
+                key: 'log',
+            }, {
                 label: '升级',
                 key: 'upgrade',
-                disabled: false,
+                show: true,
             }, {
                 label: '删除',
                 key: "delete",
@@ -230,22 +265,26 @@ export default defineComponent({
         const operationShow = (show: boolean, item) => {
             if (show) {
                 operationItem.value = item
-                operationSetDisabled('upgrade', item.upgrade === "")
+                const disabled = !stateJudge(item, 'Online')
+                operationMenu.value.forEach(v => {
+                    if (utils.leftExists(v.key, 'manage/')) {
+                        v['disabled'] = disabled
+                    }
+                })
+                operationSetShow('upgrade', item.upgrade !== "")
             }
         }
 
-        const operationSetDisabled = (key: string, disabled: boolean) => {
+        const operationSetShow = (key: string, show: boolean) => {
             operationMenu.value.forEach(item => {
                 if (item.key === key) {
-                    item['disabled'] = disabled
+                    item['show'] = show
                 }
             })
         }
 
         const operationSelect = (key: string | number, item) => {
-            if (key === 'info') {
-                message.warning("查看详情")
-            } else if (key === 'log') {
+            if (key === 'log') {
                 logIp.value = item.ip
                 logModal.value = true
             } else if (key === 'upgrade') {
@@ -270,6 +309,8 @@ export default defineComponent({
                         return operationInstance('delete', item.ip)
                     }
                 })
+            } else {
+                message.warning(`未知操作：${key}`)
             }
         }
 
@@ -332,9 +373,6 @@ export default defineComponent({
         }
         onLoad(false, true)
 
-        const addIcon = () => {
-            return h(AddOutline);
-        }
         const createDone = () => {
             createModal.value = false
             onLoad(true, true)
@@ -428,7 +466,6 @@ export default defineComponent({
             operationSelect,
 
             onLoad,
-            addIcon,
             systemsFormat,
 
             stateJudge,
@@ -437,6 +474,8 @@ export default defineComponent({
             stateText,
 
             remarkUpdate,
+
+            uptime,
         };
     }
 })
@@ -539,7 +578,7 @@ export default defineComponent({
                 }
 
                 .name {
-                    width: 40%;
+                    width: 30%;
 
                     &:hover {
                         .remark-icon {
@@ -581,7 +620,7 @@ export default defineComponent({
                 }
 
                 .release {
-                    width: 30%;
+                    width: 20%;
                 }
 
                 .state {
@@ -609,6 +648,10 @@ export default defineComponent({
                     .text {
                         flex: 1;
                     }
+                }
+
+                .uptime {
+                    width: 20%;
                 }
 
                 .menu {

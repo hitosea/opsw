@@ -1,7 +1,5 @@
 package database
 
-import "time"
-
 // 扩展模型
 
 type Base struct {
@@ -21,6 +19,7 @@ type ServerItem struct {
 	Platform        string `json:"platform"`
 	PlatformVersion string `json:"platform_version"`
 	Version         string `json:"version"`
+	CurrentInfo     string `json:"current_info"`
 
 	Upgrade string `json:"upgrade"`
 }
@@ -57,7 +56,7 @@ type ServerInfoCurrent struct {
 	NetBytesSent uint64 `json:"net_bytes_sent"`
 	NetBytesRecv uint64 `json:"net_bytes_recv"`
 
-	ShotTime time.Time `json:"shot_time"`
+	ShotTime string `json:"shot_time"`
 }
 
 type ServerInfoDiskInfo struct {

@@ -349,6 +349,23 @@ const utils = {
     },
 
     /**
+     * 返回10位数时间戳
+     * @param v
+     * @returns {number}
+     * @constructor
+     */
+    Time(v = undefined) {
+        let time
+        if (typeof v === "string" && this.strExists(v, "-")) {
+            v = v.replace(/-/g, '/');
+            time = new Date(v).getTime();
+        } else {
+            time = new Date().getTime();
+        }
+        return Math.round(time / 1000)
+    },
+
+    /**
      * 返回 时间对象|时间戳
      * @param v
      * @param stamp 是否返回时间戳
@@ -430,6 +447,35 @@ const utils = {
             return _ret.substring(_ret.length - length);
         }
     },
+
+    /**
+     * 计算时间差
+     * @param s
+     * @param e
+     */
+    timeDiff(s:number, e:number|undefined = undefined) {
+        if (typeof e === 'undefined') {
+            e = this.Time();
+        }
+        let d = e - s;
+        if (d > 86400) {
+            let day = Math.floor(d / 86400);
+            let hour = Math.ceil((d - (day * 86400)) / 3600);
+            if (hour > 0) {
+                return day + '天' + hour + '小时';
+            } else {
+                return day + '天';
+            }
+        } else if (d > 3600) {
+            return Math.ceil(d / 3600) + '小时';
+        } else if (d > 60) {
+            return Math.ceil(d / 60) + '分钟';
+        } else if (d > 10) {
+            return d + '秒';
+        } else {
+            return '刚刚';
+        }
+    }
 }
 
 export default utils
