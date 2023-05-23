@@ -7,6 +7,7 @@ import (
 	"golang.org/x/text/language"
 	"net/http"
 	"opsw/database"
+	"opsw/routes/proxy"
 	"opsw/utils"
 	"reflect"
 	"strings"
@@ -21,6 +22,16 @@ type AppStruct struct {
 func (app *AppStruct) Entry() {
 	urlPath := app.Context.Request.URL.Path
 	methodName := urlToName(urlPath)
+	// 面板
+	if strings.HasPrefix(urlPath, "/manage/panel") {
+		_app_ := proxy.AppStruct{
+			Context:    app.Context,
+			UserInfo:   app.UserInfo,
+			ServerInfo: app.ServerInfo,
+		}
+		_app_.Panel()
+		return
+	}
 	// 静态资源
 	if strings.HasPrefix(urlPath, "/assets") {
 		app.Context.File(utils.CacheDir("/web/dist%s", urlPath))

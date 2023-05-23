@@ -1,8 +1,5 @@
 <template>
     <div class="main">
-        <!-- 头部 -->
-        <Header/>
-
         <!-- 搜索 -->
         <div class="search">
             <div class="wrapper" :class="{loading: loadIng && loadShow}">

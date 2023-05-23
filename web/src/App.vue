@@ -6,7 +6,7 @@
                     <n-dialog-provider>
                         <Login v-if="resultCode === 401"/>
                         <Result v-else-if="resultCode > 0"/>
-                        <router-view v-else/>
+                        <AppSite v-else/>
                         <n-global-style/>
                     </n-dialog-provider>
                 </n-notification-provider>
@@ -21,9 +21,11 @@ import {GlobalStore} from './store'
 
 import Login from "./components/Login.vue";
 import Result from "./components/Result.vue";
+import AppSite from "./AppSite.vue";
 
 export default defineComponent({
     components: {
+        AppSite,
         Result,
         Login,
     },
