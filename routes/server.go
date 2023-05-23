@@ -245,6 +245,7 @@ func (app *AppStruct) AuthApiServerOperation() {
 	id, _ := strconv.Atoi(app.Context.Query("id"))
 	ip := app.Context.Query("ip")
 	operation := app.Context.Query("operation")
+	remark := app.Context.Query("remark")
 	//
 	where := map[string]any{}
 	if id > 0 {
@@ -312,6 +313,20 @@ func (app *AppStruct) AuthApiServerOperation() {
 		} else {
 			utils.GinResult(app.Context, http.StatusBadRequest, "服务器已经是最新版本")
 		}
+	} else if operation == "remark" {
+		// 修改备注
+		server, err := database.ServerGet(where, app.UserInfo.Id, false)
+		if err != nil {
+			utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
+			return
+		}
+		server.Remark = remark
+		err = database.ServerUpdate(server)
+		if err != nil {
+			utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
+			return
+		}
+		utils.GinResult(app.Context, http.StatusOK, "修改成功")
 	} else {
 		utils.GinResult(app.Context, http.StatusBadRequest, "操作类型错误")
 	}

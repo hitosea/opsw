@@ -45,13 +45,18 @@
                             <div class="item">
                                 <div class="name">
                                     <ul>
-                                        <li>{{ item['ip'] }}</li>
-                                        <li v-if="item['remark'] || item['hostname']" class="remark">
-                                            {{ item['remark'] || item['hostname'] }}
+                                        <li>{{ item.ip }}</li>
+                                        <li v-if="item.remark || item.hostname" class="remark">
+                                            <EditText :value="item.remark" size="small" :params="{ip:item.ip}" :on-update="remarkUpdate">
+                                                <div class="remark-edit">
+                                                    <span>{{ item.remark || item.hostname }}</span>
+                                                    <n-icon class="remark-icon" :component="Pencil"/>
+                                                </div>
+                                            </EditText>
                                         </li>
                                     </ul>
                                 </div>
-                                <div class="release">{{ item['platform'] }}-{{ item['platform_version'] }}</div>
+                                <div class="release">{{ item.platform }}-{{ item.platform_version }}</div>
                                 <div class="state">
                                     <div v-if="stateJudge(item, 'Online')" class="run">
                                         <n-badge type="success" show-zero dot/>
@@ -118,7 +123,7 @@
 import {computed, defineComponent, h, ref, VNodeChild} from "vue";
 import Header from "../components/Header.vue";
 import {useDialog, useMessage} from "naive-ui";
-import {AddOutline, EllipsisVertical, Reload, SearchOutline} from "@vicons/ionicons5";
+import {AddOutline, Pencil, EllipsisVertical, Reload, SearchOutline} from "@vicons/ionicons5";
 import Loading from "../components/Loading.vue";
 import Create from "../components/Create.vue";
 import {ResultDialog} from "../api";
@@ -127,20 +132,18 @@ import Log from "../components/Log.vue";
 import {CONST} from "../store/constant";
 import {getServerList, getServerOne, operationServer} from "../api/modules/server";
 import {WsStore} from "../store/ws";
+import EditText from "../components/EditText.vue";
+import {Server} from "../api/interface/server";
 
 export default defineComponent({
     components: {
+        EditText,
         Log,
         Create,
         Loading,
         Header,
         Reload,
         EllipsisVertical,
-    },
-    computed: {
-        SearchOutline() {
-            return SearchOutline
-        }
     },
     setup() {
         const message = useMessage()
@@ -152,7 +155,7 @@ export default defineComponent({
         const logIp = ref("");
         const loadIng = ref(false);
         const loadShow = ref(false);
-        const servers = ref([])
+        const servers = ref<Server.Item[]>([])
         const searchKey = ref("");
         const searchList = computed(() => {
             if (searchKey.value === "") {
@@ -161,10 +164,10 @@ export default defineComponent({
             return servers.value.filter(item => `${item.ip} ${item.remark}`.indexOf(searchKey.value) !== -1)
         })
 
-        const setItemState = (ip, state) => {
+        const setServerItem = (ip, key, value) => {
             servers.value.forEach(item => {
                 if (item.ip === ip) {
-                    item.state = state
+                    item[key] = value
                 }
             })
         }
@@ -260,7 +263,7 @@ export default defineComponent({
                 operationServer({operation, ip})
                     .then(({data, msg}) => {
                         message.success(msg)
-                        setItemState(ip, data.state)
+                        setServerItem(ip, 'state', data.state)
                         onLoad(false, true)
                     })
                     .catch(ResultDialog)
@@ -343,6 +346,22 @@ export default defineComponent({
             return item.state || 'Unknown'
         }
 
+        const remarkUpdate = (value, params) => {
+            return new Promise((resolve, reject) => {
+                operationServer(Object.assign(params, {
+                    operation: 'remark',
+                    remark: value
+                })).then(_ => {
+                    message.success("修改成功")
+                    setServerItem(params.ip, 'remark', value)
+                    resolve()
+                }).catch(res => {
+                    ResultDialog(res)
+                    reject()
+                })
+            })
+        }
+
         const wsTimer = ref({})
         wsStore.listener("main", data => {
             if (data.type === CONST.WsIsServer) {
@@ -363,6 +382,9 @@ export default defineComponent({
         })
 
         return {
+            Pencil,
+            SearchOutline,
+
             createModal,
             createDone,
 
@@ -388,6 +410,8 @@ export default defineComponent({
             stateLoading,
             stateStyle,
             stateText,
+
+            remarkUpdate,
         };
     }
 })
@@ -492,6 +516,12 @@ export default defineComponent({
                 .name {
                     width: 40%;
 
+                    &:hover {
+                        .remark-icon {
+                            display: block !important;
+                        }
+                    }
+
                     ul {
                         display: flex;
                         flex-direction: column;
@@ -511,6 +541,15 @@ export default defineComponent({
                                 font-weight: normal;
                                 opacity: 0.5;
                                 user-select: auto;
+
+                                .remark-edit {
+                                    display: flex;
+                                    align-items: center;
+                                    .remark-icon {
+                                        display: none;
+                                        margin-left: 6px;
+                                    }
+                                }
                             }
                         }
                     }
