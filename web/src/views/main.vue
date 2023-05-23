@@ -94,7 +94,7 @@
                             </div>
                         </n-list-item>
                     </n-list>
-                    <div v-if="pageCount > 0" class="page">
+                    <div v-if="pageCount > 1" class="page">
                         <n-pagination v-model:page="page" :page-count="pageCount" :disabled="loadIng" @update-page="onLoad(true, true)">
                             <template #prev></template>
                             <template #next></template>
@@ -483,6 +483,7 @@ export default defineComponent({
 
 <style lang="less" scoped>
 .main {
+    padding-bottom: 36px;
     .search {
         display: flex;
         flex-direction: row;
@@ -661,7 +662,7 @@ export default defineComponent({
             }
 
             .page {
-                margin: 32px 0 36px;
+                margin-top: 30px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;

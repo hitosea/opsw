@@ -16,8 +16,13 @@ watch: asset
 	$(GOCGO) air
 
 release: asset
-	$(GOCGO) GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "$(LDFLAGS)" -o ./opsw-linux-amd64/opsw
-	$(GOCGO) GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc-10 go build -trimpath -ldflags "$(LDFLAGS)" -o ./opsw-linux-arm64/opsw
+	$(GOCGO) GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "$(LDFLAGS)" -o ./opsw-$(VERSION)-linux-amd64/opsw
+	$(GOCGO) GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc-10 go build -trimpath -ldflags "$(LDFLAGS)" -o ./opsw-$(VERSION)-linux-arm64/opsw
+	@for arch in amd64 arm64; \
+	do \
+		cp install/* opsw-$(VERSION)-linux-$$arch; \
+		tar zcf opsw-$(VERSION)-linux-$$arch.tar.gz opsw-$(VERSION)-linux-$$arch; \
+	done
 
 build: asset
 	$(GOCGO) go build -trimpath -ldflags "$(LDFLAGS)" -o .

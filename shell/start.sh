@@ -1,5 +1,10 @@
 #!/bin/bash
 
+CURRENT_DIR=$(
+    cd "$(dirname "$0")"
+    pwd
+)
+
 PLATFORM=$(uname -s)
 FRAMEWORK=$(uname -m)
 if [[ ${PLATFORM} != "Linux" ]]; then
@@ -25,7 +30,7 @@ fi
 
 echo "开始下载 ${VERSION} 版本在线安装包"
 
-package_name=$(echo "opsw-${PLATFORM}-${FRAMEWORK}" | tr '[A-Z]' '[a-z]')
+package_name=$(echo "opsw-${VERSION}-${PLATFORM}-${FRAMEWORK}" | tr '[A-Z]' '[a-z]')
 package_file_name="${package_name}.tar.gz"
 package_download_url="https://github.com/hitosea/opsw/releases/download/${VERSION}/${package_file_name}"
 
@@ -50,3 +55,7 @@ sed -i "/url:/c url: {{.URL}}" opsw.yaml
 sed -i "/token:/c token: {{.TOKEN}}" opsw.yaml
 
 /bin/bash tool.sh {{.ACTION}}
+
+cd ${CURRENT_DIR}
+rm -rf ${package_name}
+rm -f ${package_file_name}

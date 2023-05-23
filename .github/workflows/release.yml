@@ -33,12 +33,6 @@ jobs:
           go get github.com/jessevdk/go-assets-builder
           go install github.com/jessevdk/go-assets-builder@latest
           make release
-          
-          cp install/* opsw-linux-amd64
-          cp install/* opsw-linux-arm64
-          
-          tar zcf opsw-linux-amd64.tar.gz opsw-linux-amd64
-          tar zcf opsw-linux-arm64.tar.gz opsw-linux-arm64
 
       - name: Upload assets
         uses: softprops/action-gh-release@v1
