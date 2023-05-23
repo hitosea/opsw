@@ -12,6 +12,7 @@ export interface WsMsg {
 export interface GlobalState {
     isLoading: number
     themeName: string
+    timer: object
 }
 
 export interface UserState {

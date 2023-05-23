@@ -11,6 +11,7 @@ export const GlobalStore = defineStore({
     state: (): GlobalState => ({
         isLoading: 0,
         themeName: '',
+        timer: {},
     }),
     actions: {
         setLoading() {
@@ -45,6 +46,17 @@ export const GlobalStore = defineStore({
                 })),
             })
             return dialog
+        },
+        timeout(ms: number, key: string, ...name) {
+            return new Promise(resolve => {
+                key = `${key}-${name.join('-')}`
+                this.timer[key] && clearTimeout(this.timer[key])
+                if (typeof this.timer[key] !== "undefined") {
+                    clearTimeout(this.timer[key])
+                    delete this.timer[key]
+                }
+                this.timer[key] = setTimeout(resolve, ms)
+            })
         }
     },
     persist: piniaPersistConfig('GlobalState'),

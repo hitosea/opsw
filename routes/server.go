@@ -144,27 +144,37 @@ func (app *AppStruct) NoAuthApiServerNotify() {
 
 // AuthApiServerList 服务器列表
 func (app *AppStruct) AuthApiServerList() {
+	var (
+		key         = utils.GinInput(app.Context, "key")
+		page, _     = strconv.Atoi(utils.GinInput(app.Context, "page"))
+		pageSize, _ = strconv.Atoi(utils.GinInput(app.Context, "page_size"))
+	)
 	db, err := database.InDB(vars.Config.DB)
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "数据库连接失败", gin.H{"error": err.Error()})
 	}
 	defer database.CloseDB(db)
 	//
-	list := &[]*database.ServerItem{}
-	err = db.
-		Model(&database.Server{}).
+	query := db.Model(&database.Server{}).
 		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id, server_infos.hostname, server_infos.platform, server_infos.platform_version, server_infos.version").
 		Joins("left join server_users on server_users.server_id = servers.id").
-		Joins("left join server_infos on server_infos.server_id = servers.id").
-		Limit(100).
-		Scan(&list).Error
+		Joins("left join server_infos on server_infos.server_id = servers.id")
+	if key != "" {
+		query = query.Where("servers.ip like ? OR servers.remark like ? OR server_infos.hostname like ?", "%"+key+"%", "%"+key+"%", "%"+key+"%")
+	}
+	data := &vars.PageStruct{
+		Page:     page,
+		PageSize: pageSize,
+		Data:     &[]*database.ServerItem{},
+	}
+	_, err = database.Page(query, data)
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "获取服务器列表失败", gin.H{"error": err.Error()})
 	} else {
-		for _, s := range *list {
+		for _, s := range *data.Data.(*[]*database.ServerItem) {
 			database.ServerFormat(s)
 		}
-		utils.GinResult(app.Context, http.StatusOK, "服务器列表", gin.H{"list": list})
+		utils.GinResult(app.Context, http.StatusOK, "服务器列表", data)
 	}
 }
 

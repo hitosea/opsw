@@ -8,7 +8,7 @@
             <div class="wrapper" :class="{loading: loadIng && loadShow}">
                 <div class="search-box">
                     <div class="input-box">
-                        <n-input round v-model:value="searchKey" placeholder="">
+                        <n-input round v-model:value="searchKey" clearable placeholder="">
                             <template #prefix>
                                 <n-icon :component="SearchOutline"/>
                             </template>
@@ -32,7 +32,7 @@
         <!-- 列表 -->
         <div class="list">
             <div class="wrapper">
-                <n-empty v-if="searchList.length === 0" class="empty" size="huge" description="没有服务器"/>
+                <n-empty v-if="servers.length === 0" class="empty" size="huge" :description="emptyPrompt"/>
                 <template v-else>
                     <div class="item nav">
                         <div class="name">服务器</div>
@@ -41,7 +41,7 @@
                         <div class="menu">操作</div>
                     </div>
                     <n-list hoverable :show-divider="false">
-                        <n-list-item v-for="item in searchList">
+                        <n-list-item v-for="item in servers">
                             <div class="item">
                                 <div class="name">
                                     <ul>
@@ -87,6 +87,12 @@
                             </div>
                         </n-list-item>
                     </n-list>
+                    <div v-if="pageCount > 0" class="page">
+                        <n-pagination v-model:page="page" :page-count="pageCount" :disabled="loadIng" @update-page="onLoad(true, true)">
+                            <template #prev></template>
+                            <template #next></template>
+                        </n-pagination>
+                    </div>
                 </template>
             </div>
         </div>
@@ -120,7 +126,7 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, h, ref, VNodeChild} from "vue";
+import {computed, defineComponent, h, ref, VNodeChild, watch} from "vue";
 import Header from "../components/Header.vue";
 import {useDialog, useMessage} from "naive-ui";
 import {AddOutline, Pencil, EllipsisVertical, Reload, SearchOutline} from "@vicons/ionicons5";
@@ -134,6 +140,7 @@ import {getServerList, getServerOne, operationServer} from "../api/modules/serve
 import {WsStore} from "../store/ws";
 import EditText from "../components/EditText.vue";
 import {Server} from "../api/interface/server";
+import {GlobalStore} from "../store";
 
 export default defineComponent({
     components: {
@@ -148,6 +155,7 @@ export default defineComponent({
     setup() {
         const message = useMessage()
         const dialog = useDialog()
+        const globalStore = GlobalStore()
         const wsStore = WsStore()
         const dLog = ref(null);
         const createModal = ref(false);
@@ -156,12 +164,19 @@ export default defineComponent({
         const loadIng = ref(false);
         const loadShow = ref(false);
         const servers = ref<Server.Item[]>([])
+        const page = ref(1)
+        const pageCount = ref(0)
         const searchKey = ref("");
-        const searchList = computed(() => {
-            if (searchKey.value === "") {
-                return servers.value
-            }
-            return servers.value.filter(item => `${item.ip} ${item.remark}`.indexOf(searchKey.value) !== -1)
+        const searchLast = ref("");
+        const emptyPrompt = ref("暂无数据");
+
+        watch(searchKey, (val) => {
+            globalStore.timeout(600, "search").then(() => {
+                if (val != searchLast.value) {
+                    searchLast.value = val
+                    onLoad(true, true)
+                }
+            })
         })
 
         const setServerItem = (ip, key, value) => {
@@ -283,16 +298,25 @@ export default defineComponent({
             loadIng.value = true
             loadShow.value = showLoad
             //
-            getServerList()
+            const params = {page: page.value, page_size: 10, key: searchKey.value}
+            getServerList(params)
                 .then(({data}) => {
-                    if (!utils.isArray(data.list)) {
+                    if (params.key != searchKey.value) {
+                        return
+                    }
+                    if (utils.parseInt(data.total) === 0) {
                         if (tip === true) {
-                            message.warning("暂无数据")
+                            emptyPrompt.value = params.key ? "暂无搜索结果" : "暂无数据"
+                            message.warning(emptyPrompt.value)
                         }
+                        page.value = 1
+                        pageCount.value = 0
                         servers.value = []
                         return
                     }
-                    servers.value = data.list
+                    page.value = data.page
+                    pageCount.value = data.page_count
+                    servers.value = data.data
                 })
                 .catch(res => {
                     if (tip) {
@@ -362,11 +386,9 @@ export default defineComponent({
             })
         }
 
-        const wsTimer = ref({})
         wsStore.listener("main", data => {
             if (data.type === CONST.WsIsServer) {
-                wsTimer.value[data.cid] && clearTimeout(wsTimer.value[data.cid])
-                wsTimer.value[data.cid] = setTimeout(_ => {
+                globalStore.timeout(3000, "main", data.cid).then(_ => {
                     if (servers.value.find(item => item.id === data.cid)) {
                         getServerOne({
                             id: data.cid
@@ -377,7 +399,7 @@ export default defineComponent({
                             }
                         })
                     }
-                }, 3000)
+                })
             }
         })
 
@@ -394,8 +416,11 @@ export default defineComponent({
             loadIng,
             loadShow,
 
+            page,
+            pageCount,
+            servers,
             searchKey,
-            searchList,
+            emptyPrompt,
 
             operationMenu,
             operationLabel,
@@ -590,6 +615,13 @@ export default defineComponent({
                     min-width: 32px;
                     padding: 0;
                 }
+            }
+
+            .page {
+                margin: 32px 0 36px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
             }
         }
     }

@@ -13,8 +13,8 @@ export const operationServer = (params: Server.OperationReq) => {
     return http.get('server/operation', params)
 }
 
-export const getServerList = () => {
-    return http.get<Server.List>("server/list")
+export const getServerList = (params: Server.ListReq) => {
+    return http.get<Server.List>("server/list", params)
 }
 
 export const getServerOne = (params: Server.OneReq) => {

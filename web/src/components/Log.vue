@@ -1,17 +1,23 @@
 <template>
-    <div class="log">
-        <n-log ref="nRef" class="log-nowrap" :log="content" trim/>
-        <div class="footer">
-            <n-button :loading="loading" @click="getData">刷新</n-button>
+    <n-config-provider :hljs="hljs">
+        <div class="log">
+            <n-scrollbar ref="nRef" class="log-scrollbar" x-scrollable>
+                <n-code :code="content" language="bash" />
+            </n-scrollbar>
+            <div class="footer">
+                <n-button :loading="loading" @click="getData(true)">刷新</n-button>
+            </div>
         </div>
-    </div>
+    </n-config-provider>
 </template>
 
 <style lang="less">
 .log {
-    .log-nowrap {
-         pre {
-            white-space: pre;
+    .log-scrollbar {
+        max-height: 300px;
+        .__code__ {
+            font-size: 14px;
+            line-height: 1.35;
         }
     }
 }
@@ -28,8 +34,12 @@
 </style>
 <script lang="ts">
 import {defineComponent, onBeforeUnmount, nextTick, ref} from 'vue'
+import hljs from 'highlight.js/lib/core'
+import bash from 'highlight.js/lib/languages/bash'
 import {ResultDialog} from "../api";
 import {getServerLog} from "../api/modules/server";
+
+hljs.registerLanguage('bash', bash)
 
 export default defineComponent({
     props: {
@@ -48,28 +58,28 @@ export default defineComponent({
         const content = ref("");
 
         const scrollToBottom = () => {
-            const {scrollbarRef} = nRef.value
-            const {containerRef, contentRef} = scrollbarRef
+            const {scrollbarInstRef} = nRef.value
+            const {containerRef, contentRef} = scrollbarInstRef
             if (containerRef && contentRef) {
                 const containerHeight = containerRef.offsetHeight
                 const containerScrollTop = containerRef.scrollTop
                 const contentHeight = contentRef.offsetHeight
                 const scrollBottom = contentHeight - containerScrollTop - containerHeight
-                return scrollBottom < 10
+                return scrollBottom < 20
             }
             return true
         }
 
-        const getData = () => {
+        const getData = (manual=false) => {
             if (loading.value) {
                 return
             }
             loading.value = true
             getServerLog({ip: props.ip})
                 .then(({data}) => {
-                    const isBottom = scrollToBottom()
+                    const autoBottom = manual === true || scrollToBottom()
                     content.value = data.log
-                    isBottom && nextTick(() => {
+                    autoBottom && nextTick(() => {
                         nRef.value?.scrollTo({position: 'bottom'})
                     })
                 })
@@ -96,6 +106,7 @@ export default defineComponent({
         })
 
         return {
+            hljs,
             content,
             loading,
             nRef,

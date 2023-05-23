@@ -6,6 +6,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"math"
 	"opsw/utils"
 	"opsw/vars"
 	"os"
@@ -53,6 +54,45 @@ func Init() (*gorm.DB, error) {
 		}
 	}
 	return db, err
+}
+
+func Page(query *gorm.DB, params *vars.PageStruct) (int64, error) {
+	// 1.默认参数
+	if params.Page < 1 {
+		params.Page = 1
+	}
+	if params.PageSize < 1 {
+		params.PageSize = 10
+	}
+
+	// 2.搜索数量
+	err := query.Count(&params.Total).Error
+	if err != nil {
+		return 0, err
+	}
+
+	// 3.计算分页
+	params.PageCount = int(math.Ceil(float64(params.Total) / float64(params.PageSize)))
+	params.PrevPage = params.Page - 1
+	if params.PrevPage < 1 {
+		params.PrevPage = 1
+	}
+	params.NextPage = params.Page + 1
+	if params.NextPage > params.PageCount {
+		params.NextPage = params.PageCount
+	}
+	if params.Page > params.PageCount {
+		params.Page = params.PageCount
+	}
+	offset := params.PageSize * (params.Page - 1)
+
+	// 4.偏移量的数据
+	err = query.Limit(params.PageSize).Offset(offset).Find(params.Data).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return params.Total, nil
 }
 
 func UserGet(query any) (*User, error) {

@@ -1,7 +1,7 @@
 import axios, {AxiosInstance, AxiosRequestConfig} from 'axios'
 import utils from "../utils/utils";
 import {GlobalStore} from "../store";
-import {ResultData} from "./interface/result";
+import {ResultData} from "./interface/base";
 
 const config = {
     baseURL: '/api', // 所有的请求地址前缀部分

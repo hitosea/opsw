@@ -1,4 +1,4 @@
-import {DatabaseBase} from "./result";
+import {DatabaseBase, Page, PageReq} from "./base";
 
 export namespace Server {
     export interface Log {
@@ -46,10 +46,14 @@ export namespace Server {
         upgrade: string
     }
 
-    export interface List {
-        list: Server.Item[]
+    export interface List extends Page {
+        data: Server.Item[]
     }
 
     export interface OneReq extends LogReq {
+    }
+
+    export interface ListReq extends PageReq {
+        key?: string
     }
 }

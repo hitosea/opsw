@@ -29,6 +29,16 @@ type WorkStruct struct {
 	Conf  string
 }
 
+type PageStruct struct {
+	Page      int   `json:"page"`
+	PageSize  int   `json:"page_size"`
+	PrevPage  int   `json:"prev_page"`
+	NextPage  int   `json:"next_page"`
+	PageCount int   `json:"page_count"`
+	Data      any   `json:"data"`
+	Total     int64 `json:"total"`
+}
+
 type WsClientStruct struct {
 	Conn *websocket.Conn `json:"conn"`
 
