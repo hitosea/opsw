@@ -15,7 +15,6 @@ export const WsStore = defineStore({
         random: "",
         openNum: 0,
         listener: {},
-        watch: false
     }),
     actions: {
         connection() {

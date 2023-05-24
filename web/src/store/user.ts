@@ -3,10 +3,10 @@ import {UserState} from './interface';
 import piniaPersistConfig from "./config/pinia-persist";
 import {getUserInfo} from "../api/modules/user";
 import utils from "../utils/utils";
-import {watch} from "vue";
+import {ref, watch} from "vue";
 import {WsStore} from "./ws";
 
-const wsStore = WsStore()
+const wsWatch = ref(false)
 
 export const UserStore = defineStore({
     id: 'UserState',
@@ -15,8 +15,9 @@ export const UserStore = defineStore({
     }),
     actions: {
         refresh() {
-            if (!wsStore.watch) {
-                wsStore.watch = true
+            if (!wsWatch.value) {
+                wsWatch.value = true
+                const wsStore = WsStore()
                 watch(
                     _ => this.info,
                     info => {

@@ -28,5 +28,4 @@ export interface WsState {
     random: string,
     openNum: number,
     listener: object,
-    watch: boolean
 }

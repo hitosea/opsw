@@ -1,8 +1,5 @@
 <template>
     <div class="main">
-        <!-- 头部 -->
-        <Header/>
-
         <!-- 搜索 -->
         <div class="search">
             <div class="wrapper" :class="{loading: loadIng && loadShow}">
@@ -83,13 +80,15 @@
                                     :render-label="operationLabel"
                                     @updateShow="operationShow($event, item)"
                                     @select="operationSelect($event, item)">
-                                    <n-button quaternary class="menu">
-                                        <template #icon>
-                                            <n-icon>
-                                                <EllipsisVertical/>
-                                            </n-icon>
-                                        </template>
-                                    </n-button>
+                                    <n-badge :show="!!item.upgrade" dot type="warning">
+                                        <n-button quaternary :focusable="false" class="menu">
+                                            <template #icon>
+                                                <n-icon>
+                                                    <EllipsisVertical/>
+                                                </n-icon>
+                                            </template>
+                                        </n-button>
+                                    </n-badge>
                                 </n-dropdown>
                             </div>
                         </n-list-item>
@@ -290,7 +289,10 @@ export default defineComponent({
             } else if (key === 'upgrade') {
                 const dd = dialog.warning({
                     title: '升级服务器',
-                    content: '确定要升级服务器吗？',
+                    content: () => h('div', [
+                        h('div', '确定要升级服务器吗？'),
+                        h('div', `当前版本：${item.version}，最新版本：${item.upgrade}`),
+                    ]),
                     positiveText: '确定',
                     negativeText: '取消',
                     onPositiveClick: () => {

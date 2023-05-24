@@ -1,5 +1,5 @@
 import {createApp} from 'vue'
-import App from './App.vue'
+import App from './app/index.vue'
 import pinia, {GlobalStore} from './store'
 import {routes} from "./routes/routes";
 import createDemoRouter from './routes'
