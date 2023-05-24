@@ -56,6 +56,10 @@ func (app *AppStruct) AuthApiServerCreate() {
 		Remark:   remark,
 		State:    "Installing",
 		Token:    utils.Base64Encode("s:%s", utils.GenerateString(22)),
+
+		PanelPort:     int32(utils.RandNum(10000, 65535)),
+		PanelUsername: utils.GenerateString(12),
+		PanelPassword: utils.GenerateString(12),
 	}
 	serverUser := &database.ServerUser{
 		UserId:  app.UserInfo.Id,
@@ -65,7 +69,7 @@ func (app *AppStruct) AuthApiServerCreate() {
 	if err != nil {
 		utils.GinResult(app.Context, http.StatusBadRequest, "添加服务器失败", gin.H{"error": err.Error()})
 	} else {
-		command := fmt.Sprintf("content://%s/api/shell/start.sh?action=install&token=%s", utils.GinHomeUrl(app.Context), server.Token)
+		command := fmt.Sprintf("content://%s/api/shell/start.sh?action=install&token=%s&panel_port=%d&panel_username=%s&panel_password=%s", utils.GinHomeUrl(app.Context), server.Token, server.PanelPort, server.PanelUsername, server.PanelPassword)
 		url := fmt.Sprintf("%s/api/server/notify?token=%s", utils.GinHomeUrl(app.Context), server.Token)
 		logf := utils.CacheDir("/logs/server/%s/serve.log", server.Ip)
 		cmd := fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --url %s --log %s >/dev/null 2>&1 &",
@@ -305,7 +309,7 @@ func (app *AppStruct) AuthApiServerOperation() {
 				utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
 				return
 			}
-			command := fmt.Sprintf("content://%s/api/shell/start.sh?action=upgrade&token=%s", utils.GinHomeUrl(app.Context), server.Token)
+			command := fmt.Sprintf("content://%s/api/shell/start.sh?action=upgrade&token=%s&panel_port=%d&panel_username=%s&panel_password=%s", utils.GinHomeUrl(app.Context), server.Token, server.PanelPort, server.PanelUsername, server.PanelPassword)
 			url := fmt.Sprintf("%s/api/server/notify?token=%s", utils.GinHomeUrl(app.Context), server.Token)
 			logf := utils.CacheDir("/logs/server/%s/serve.log", server.Ip)
 			cmd := fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --url %s --log %s >/dev/null 2>&1 &",

@@ -21,7 +21,10 @@ type Server struct {
 	Remark   string `json:"remark"`
 	State    string `json:"state"`
 	Token    string `json:"token"`
-	Systems  string `json:"systems"`
+
+	PanelPort     int32  `json:"panel_port"`
+	PanelUsername string `json:"panel_username"`
+	PanelPassword string `json:"panel_password"`
 }
 
 type ServerUser struct {

@@ -215,6 +215,8 @@ func ServerGet(query any, userId int32, owner bool) (*Server, error) {
 func ServerFormat(item *ServerItem) *ServerItem {
 	item.Password = "******"
 	item.Token = "******"
+	item.PanelUsername = "******"
+	item.PanelPassword = "******"
 	if item.State == "Installing" || item.State == "Upgrading" {
 		// 检查是否超时
 		logf := utils.CacheDir("/logs/server/%s/serve.log", item.Ip)

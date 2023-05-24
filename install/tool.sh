@@ -24,12 +24,12 @@ EOF
 function Prepare_Install(){
     is64bit=`getconf LONG_BIT`
     if [[ $is64bit != "64" ]]; then
-        log "不支持 32 位系统安装 Opsw 运维服务，请更换 64 位系统安装"
+        log "不支持 32 位系统安装，请更换 64 位系统安装"
         exit 1
     fi
 
     if which opsw >/dev/null 2>&1; then
-        log "Opsw 运维服务已安装，请勿重复安装"
+        log "已安装，请勿重复安装"
         exit 1
     fi
 }
@@ -37,7 +37,7 @@ function Prepare_Install(){
 function Prepare_Upgrade(){
     is64bit=`getconf LONG_BIT`
     if [[ $is64bit != "64" ]]; then
-        log "不支持 32 位系统安装 Opsw 运维服务，请更换 64 位系统安装"
+        log "不支持 32 位系统安装，请更换 64 位系统安装"
         exit 1
     fi
 
@@ -116,7 +116,7 @@ function Install_Compose(){
 }
 
 function Init_Service(){
-    log "配置 Opsw Service"
+    log "配置Service"
 
     cd ${CURRENT_DIR}
 
@@ -132,7 +132,7 @@ function Init_Service(){
 
     systemctl enable opsw; systemctl daemon-reload 2>&1 | tee -a ${CURRENT_DIR}/install.log
 
-    log "启动 Opsw 服务"
+    log "启动服务"
     systemctl start opsw | tee -a ${CURRENT_DIR}/install.log
 
     for b in {1..30}
@@ -140,10 +140,10 @@ function Init_Service(){
         sleep 3
         service_status=`systemctl status opsw 2>&1 | grep Active`
         if [[ $service_status == *running* ]];then
-            log "Opsw 服务启动成功!"
+            log "服务启动成功!"
             break;
         else
-            log "Opsw 服务启动出错!"
+            log "服务启动出错!"
             exit 1
         fi
     done
@@ -152,7 +152,7 @@ function Init_Service(){
 }
 
 function install(){
-    log "开始安装 Opsw 运维服务"
+    log "开始安装"
     Prepare_Install
     Install_Docker
     Install_Compose
@@ -160,7 +160,7 @@ function install(){
 }
 
 function upgrade(){
-    log "开始升级 Opsw 运维服务"
+    log "开始升级"
     Prepare_Upgrade
     Install_Docker
     Install_Compose

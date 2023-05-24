@@ -1,19 +1,29 @@
 #!/bin/bash
 
-function log() {
+function olog() {
     echo -e "[Opsw Log]: $1"
 }
 
-log "开始卸载 Opsw 运维服务"
+function plog() {
+    echo -e "[Opsw Log] [Panel]: $1"
+}
 
-log "1) 停止 Opsw 服务进程..."
+olog "开始卸载"
+
+olog "停止服务进程..."
 systemctl stop opsw.service
 
-log "2) 删除 Opsw 服务和数据目录..."
-rm -rf /usr/local/bin/opsw /etc/config/opsw.yaml /etc/systemd/system/opsw.service
+olog "删除服务和数据目录..."
+rm -rf /usr/local/bin/opsw /etc/systemd/system/opsw.service /etc/config/opsw.yaml
 
-log "3) 重新加载服务配置文件..."
+plog "停止服务进程..."
+systemctl stop opspanel.service
+
+plog "删除服务和数据目录..."
+rm -rf /usr/local/bin/opspanel /etc/systemd/system/opspanel.service /usr/bin/manage-panel /opt/manage-panel
+
+olog "重新加载服务配置文件..."
 systemctl daemon-reload
 systemctl reset-failed
 
-log "卸载完成"
+olog "卸载完成"
