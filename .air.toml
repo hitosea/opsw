@@ -4,7 +4,7 @@ tmp_dir = ".cache/tmp"
 
 [build]
   args_bin = []
-  bin = "./opsw run --mode debug"
+  bin = "./opsw --mode debug"
   cmd = "go build -o ./opsw ."
   delay = 0
   exclude_dir = ["tmp", "web"]

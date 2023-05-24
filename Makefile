@@ -10,7 +10,7 @@ GOCGO 	:= env CGO_ENABLED=1
 LDFLAGS	:= -s -w -X "$(MODULE)/vars.Version=$(VERSION)" -X "$(MODULE)/vars.CommitSHA=$(VERSION_HASH)"
 
 run: build
-	./opsw run --mode debug
+	./opsw --mode debug
 
 watch: asset
 	$(GOCGO) air
