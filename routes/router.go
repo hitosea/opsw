@@ -7,6 +7,7 @@ import (
 	"golang.org/x/text/language"
 	"net/http"
 	"opsw/database"
+	"opsw/routes/proxy"
 	"opsw/utils"
 	"reflect"
 	"strings"
@@ -52,6 +53,11 @@ func (app *AppStruct) Entry() {
 	// 登录验证
 	if app.UserInfo.Token == "" {
 		utils.GinResult(app.Context, http.StatusUnauthorized, "请先登录")
+		return
+	}
+	// 管理面板（需要登录）
+	if strings.HasPrefix(urlPath, "/manage/panel") {
+		proxy.ManagePanel(app.Context, app.UserInfo)
 		return
 	}
 	// 动态路由（需要登录）

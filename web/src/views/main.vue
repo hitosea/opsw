@@ -197,34 +197,34 @@ export default defineComponent({
         const operationMenu = ref([
             {
                 label: '应用商店',
-                key: 'manage/apps/all',
+                key: 'manage/panel/apps/all',
             }, {
                 label: '网站',
-                key: 'manage/websites',
+                key: 'manage/panel/websites',
             }, {
                 label: '数据库',
-                key: 'manage/databases/mysql',
+                key: 'manage/panel/databases/mysql',
             }, {
                 label: '容器',
-                key: 'manage/containers/container',
+                key: 'manage/panel/containers/container',
             }, {
                 label: '计划任务',
-                key: 'manage/cronjobs',
+                key: 'manage/panel/cronjobs',
             }, {
                 type: 'divider',
                 key: 'd1'
             }, {
                 label: '文件',
-                key: 'manage/hosts/files',
+                key: 'manage/panel/hosts/files',
             }, {
                 label: '监控',
-                key: 'manage/hosts/monitor/monitor',
+                key: 'manage/panel/hosts/monitor/monitor',
             }, {
                 label: '终端',
-                key: 'manage/hosts/terminal',
+                key: 'manage/panel/hosts/terminal',
             }, {
                 label: '防火墙',
-                key: 'manage/hosts/firewall/port',
+                key: 'manage/panel/hosts/firewall/port',
             }, {
                 type: 'divider',
                 key: 'd1'
@@ -311,6 +311,9 @@ export default defineComponent({
                         return operationInstance('delete', item.ip)
                     }
                 })
+            } else if (utils.leftExists(key, 'manage/')) {
+                const url = `${key}?ip=${item.ip}`
+                window.open(url)
             } else {
                 message.warning(`未知操作：${key}`)
             }
