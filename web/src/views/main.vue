@@ -236,8 +236,13 @@ export default defineComponent({
                 key: 'upgrade',
                 show: true,
             }, {
+                label: '重置',
+                key: 'reset',
+                show: false,
+            }, {
                 label: '删除',
                 key: "delete",
+                color: 'rgb(248,113,113)',
             }
         ])
 
@@ -247,11 +252,11 @@ export default defineComponent({
             }
             if (option.key === 'upgrade') {
                 return `${option.label} (${operationItem.value.upgrade})` as VNodeChild
-            } else if (option.key === 'delete') {
+            } else if (typeof option.color === 'string') {
                 return h(
                     'span',
                     {
-                        style: 'color:rgb(248,113,113);height:34px;display:flex;align-items:center',
+                        style: `color:${option.color}`,
                     },
                     {
                         default: () => option.label as VNodeChild
@@ -271,6 +276,7 @@ export default defineComponent({
                     }
                 })
                 operationSetShow('upgrade', item.upgrade !== "")
+                operationSetShow('reset', item.upgrade === "")
             }
         }
 
@@ -298,6 +304,17 @@ export default defineComponent({
                     onPositiveClick: () => {
                         dd.loading = true
                         return operationInstance('upgrade', item.ip)
+                    }
+                })
+            } else if (key === 'reset') {
+                const dd = dialog.warning({
+                    title: '重置服务器',
+                    content: '确定要重置服务器吗？',
+                    positiveText: '确定',
+                    negativeText: '取消',
+                    onPositiveClick: () => {
+                        dd.loading = true
+                        return operationInstance('reset', item.ip)
                     }
                 })
             } else if (key === 'delete') {
@@ -389,7 +406,11 @@ export default defineComponent({
         }
 
         const stateJudge = (item, state) => {
-            return stateText(item) === state
+            const ss = stateText(item)
+            if (utils.isArray(state)) {
+                return state.includes(ss)
+            }
+            return ss === state
         }
         const stateLoading = (item) => {
             const state = stateText(item)
@@ -398,8 +419,6 @@ export default defineComponent({
         const stateStyle = (item) => {
             const state = stateText(item)
             switch (state) {
-                case 'Failed':
-                case 'Unknown':
                 case 'Timeout':
                 case 'Error':
                     return {

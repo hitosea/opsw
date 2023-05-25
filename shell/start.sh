@@ -1,10 +1,5 @@
 #!/bin/bash
 
-CURRENT_DIR=$(
-    cd "$(dirname "$0")"
-    pwd
-)
-
 PLATFORM=$(uname -s)
 FRAMEWORK=$(uname -m)
 if [[ ${PLATFORM} != "Linux" ]]; then
@@ -19,6 +14,12 @@ if [[ ${FRAMEWORK} == "x86_64" ]]; then
 fi
 if [[ ${FRAMEWORK} != "amd64" ]] && [[ ${FRAMEWORK} != "arm64" ]]; then
     echo "不支持的架构：${FRAMEWORK}，仅支持 amd64 和 arm64"
+    exit 1
+fi
+
+mkdir -p /tmp/opsw
+if [ $? != 0 ];then
+    echo "创建临时目录失败，请检查权限"
     exit 1
 fi
 
@@ -44,6 +45,7 @@ package_download_url="https://github.com/hitosea/opsw/releases/download/${VERSIO
 
 olog "安装包下载地址： ${package_download_url}"
 
+cd /tmp/opsw
 curl -LOk -o ${package_file_name} ${package_download_url}
 if [ ! -f ${package_file_name} ];then
 	olog "下载安装包失败，请稍候重试。"
@@ -63,10 +65,6 @@ sed -i "/url:/c url: {{.URL}}" opsw.yaml
 sed -i "/token:/c token: {{.TOKEN}}" opsw.yaml
 
 /bin/bash tool.sh {{.ACTION}}
-
-cd ${CURRENT_DIR}
-rm -rf ${package_name}
-rm -f ${package_file_name}
 
 #####################################
 ############# panel 部分 #############
@@ -92,6 +90,7 @@ package_download_url="https://github.com/hitosea/1Panel/releases/download/${VERS
 
 plog "安装包下载地址： ${package_download_url}"
 
+cd /tmp/opsw
 curl -LOk -o ${package_file_name} ${package_download_url}
 if [ ! -f ${package_file_name} ];then
 	plog "下载安装包失败，请稍候重试。"
@@ -161,6 +160,5 @@ done
 
 plog "安装完成"
 
-cd ${CURRENT_DIR}
-rm -rf ${package_name}
-rm -f ${package_file_name}
+cd ~
+rm -rf /tmp/opsw

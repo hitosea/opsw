@@ -117,12 +117,14 @@ func (app *AppStruct) NoAuthApiServerNotify() {
 	action := "添加"
 	if server.State == "Upgrading" {
 		action = "升级"
+	} else if server.State == "Resetting" {
+		action = "重置"
 	}
-	if server.State == "Installing" || server.State == "Upgrading" {
+	if server.State == "Installing" || server.State == "Upgrading" || server.State == "Resetting" {
 		_ = utils.AppendToFile(logf, fmt.Sprintf("%s服务器结束，时间：%s\n", action, time_))
 		if state == "error" {
 			server.State = "Error"
-			_ = utils.AppendToFile(logf, fmt.Sprintf("添加服务器失败，原因：%s\n", error_))
+			_ = utils.AppendToFile(logf, fmt.Sprintf("%s服务器失败，原因：%s\n", action, error_))
 		} else {
 			server.State = "Installed"
 			_ = utils.AppendToFile(logf, fmt.Sprintf("%s服务器成功\n", action))
@@ -301,6 +303,10 @@ func (app *AppStruct) AuthApiServerOperation() {
 			utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
 			return
 		}
+		if database.ServerBusy(server) {
+			utils.GinResult(app.Context, http.StatusBadRequest, "服务器正在执行其他操作，请稍后再试")
+			return
+		}
 		serverInfo, _ := database.ServerInfoGet(server.Id)
 		if serverInfo == nil || strings.Compare(vars.Version, serverInfo.Version) > 0 {
 			server.State = "Upgrading"
@@ -327,6 +333,51 @@ func (app *AppStruct) AuthApiServerOperation() {
 		} else {
 			utils.GinResult(app.Context, http.StatusBadRequest, "服务器已经是最新版本")
 		}
+	} else if operation == "reset" {
+		// 重置服务器
+		server, err := database.ServerGet(where, app.UserInfo.Id, true)
+		if err != nil {
+			utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
+			return
+		}
+		if database.ServerBusy(server) {
+			utils.GinResult(app.Context, http.StatusBadRequest, "服务器正在执行其他操作，请稍后再试")
+			return
+		}
+		server.State = "Resetting"
+		err = database.ServerUpdate(server)
+		if err != nil {
+			utils.GinResult(app.Context, http.StatusBadRequest, "操作失败", gin.H{"error": err.Error()})
+			return
+		}
+		logf := utils.CacheDir("/logs/server/%s/serve.log", server.Ip)
+		_ = utils.AppendToFile(logf, fmt.Sprintf("--------------------\n开始重置服务器 %s\n", utils.FormatYmdHis(time.Now())))
+		//
+		command := fmt.Sprintf("content://%s/api/shell/end.sh", utils.GinHomeUrl(app.Context))
+		cmd := fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --log %s >/dev/null 2>&1 &",
+			runFile,
+			server.Ip,
+			server.Port,
+			server.Username,
+			utils.Base64Encode(server.Password),
+			utils.Base64Encode(command),
+			logf)
+		_, _ = utils.Cmd("-c", cmd)
+		//
+		command = fmt.Sprintf("content://%s/api/shell/start.sh?action=install&token=%s&panel_port=%d&panel_username=%s&panel_password=%s", utils.GinHomeUrl(app.Context), server.Token, server.PanelPort, server.PanelUsername, server.PanelPassword)
+		url := fmt.Sprintf("%s/api/server/notify?token=%s", utils.GinHomeUrl(app.Context), server.Token)
+		cmd = fmt.Sprintf("%s exec --host %s:%s --user %s --password %s --cmd %s --url %s --log %s >/dev/null 2>&1 &",
+			runFile,
+			server.Ip,
+			server.Port,
+			server.Username,
+			utils.Base64Encode(server.Password),
+			utils.Base64Encode(command),
+			url,
+			logf)
+		_, _ = utils.Cmd("-c", cmd)
+		//
+		utils.GinResult(app.Context, http.StatusOK, "操作成功")
 	} else if operation == "remark" {
 		// 修改备注
 		server, err := database.ServerGet(where, app.UserInfo.Id, false)

@@ -212,12 +212,26 @@ func ServerGet(query any, userId int32, owner bool) (*Server, error) {
 	return server, nil
 }
 
+func ServerBusy(item *Server) bool {
+	if item.State == "Installing" || item.State == "Upgrading" || item.State == "Resetting" {
+		// 检查是否超时
+		logf := utils.CacheDir("/logs/server/%s/serve.log", item.Ip)
+		if fi, er := os.Stat(logf); er == nil {
+			if time.Now().Sub(fi.ModTime()).Minutes() > 10 {
+				return false
+			}
+		}
+		return true
+	}
+	return false
+}
+
 func ServerFormat(item *ServerItem) *ServerItem {
 	item.Password = "******"
 	item.Token = "******"
 	item.PanelUsername = "******"
 	item.PanelPassword = "******"
-	if item.State == "Installing" || item.State == "Upgrading" {
+	if item.State == "Installing" || item.State == "Upgrading" || item.State == "Resetting" {
 		// 检查是否超时
 		logf := utils.CacheDir("/logs/server/%s/serve.log", item.Ip)
 		if fi, er := os.Stat(logf); er == nil {
