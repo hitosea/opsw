@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net"
 	"net/mail"
+	"opsw/vars"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -308,5 +309,11 @@ func RunDir(path string, a ...any) string {
 
 // CacheDir 缓存目录
 func CacheDir(path string, a ...any) string {
-	return RunDir(fmt.Sprintf("/.cache%s", path), a...)
+	if len(a) > 0 {
+		path = fmt.Sprintf(path, a...)
+	}
+	if vars.Config.Cache == "" {
+		vars.Config.Cache = RunDir("/.cache")
+	}
+	return fmt.Sprintf("%s%s", vars.Config.Cache, path)
 }

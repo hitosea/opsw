@@ -6,6 +6,7 @@ import (
 )
 
 type ConfStruct struct {
+	Cache   string
 	Mode    string
 	Host    string
 	Port    string

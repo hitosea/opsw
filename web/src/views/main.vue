@@ -329,7 +329,7 @@ export default defineComponent({
                     }
                 })
             } else if (utils.leftExists(key, 'manage/')) {
-                const url = `${key}?ip=${item.ip}`
+                const url = `${key}?ip=${item.ip}&theme=${globalStore.themeName}`
                 window.open(url)
             } else {
                 message.warning(`未知操作：${key}`)

@@ -110,6 +110,7 @@ func Execute() {
 	rootCommand.Flags().StringVar(&vars.Config.Host, "host", "", "主机名，默认：0.0.0.0")
 	rootCommand.Flags().StringVar(&vars.Config.Port, "port", "", "端口号，默认：8080")
 	rootCommand.Flags().StringVar(&vars.Config.Mode, "mode", "release", "运行模式，可选：debug|test|release")
+	rootCommand.Flags().StringVar(&vars.Config.Cache, "cache", "", "数据缓存目录，默认：{RunDir}/.cache")
 	rootCommand.Flags().StringVar(&vars.Config.DB, "db", "", "数据库连接地址，如：sqlite://root.db")
 	if err := rootCommand.Execute(); err != nil {
 		fmt.Println(err)

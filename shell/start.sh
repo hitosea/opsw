@@ -127,7 +127,7 @@ After=syslog.target network.target
 
 [Service]
 ExecStart=/usr/bin/opspanel
-ExecReload=/bin/kill -s HUP $MAINPID
+ExecReload=/bin/kill -s HUP \$MAINPID
 Restart=always
 RestartSec=5
 LimitNOFILE=1048576
