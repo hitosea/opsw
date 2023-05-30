@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/md5"
+	crypto_rand "crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -166,7 +167,7 @@ func RandString(len int) string {
 func GenerateString(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var bs = make([]byte, length)
-	_, err := rand.Read(bs)
+	_, err := crypto_rand.Read(bs)
 	if err != nil {
 		return RandString(length)
 	}
@@ -178,8 +179,8 @@ func GenerateString(length int) string {
 
 // RandNum 生成随机数
 func RandNum(min, max int) int {
-	rand.Seed(time.Now().Unix())
-	return rand.Intn(max-min) + min
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return r.Intn(max-min) + min
 }
 
 // StringMd5 MD5
