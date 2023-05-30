@@ -212,6 +212,7 @@ function Remove_Web(){
 
 function install(){
     log "======================= 开始安装 ======================="
+    log ""
     Prepare_System
     Set_Dir
     Set_Port
@@ -223,6 +224,7 @@ function install(){
 
 function uninstall(){
     log "======================= 开始卸载 ======================="
+    log ""
     Remove_Web
 }
 

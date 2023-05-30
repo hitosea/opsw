@@ -13,5 +13,5 @@ bash <(curl -sSL https://raw.githubusercontent.com/hitosea/opsw/main/install.sh)
 ## 一键卸载
 
 ```shell
-bash <(curl -sSL https://raw.githubusercontent.com/hitosea/opsw/main/install.sh uninstall)
+bash <(curl -sSL https://raw.githubusercontent.com/hitosea/opsw/main/install.sh) uninstall
 ```
