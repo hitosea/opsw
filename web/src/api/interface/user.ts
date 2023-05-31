@@ -19,4 +19,15 @@ export namespace User {
         password: string,
         password2?: string,
     }
+
+    export interface Options {
+        label: string,
+        value: number,
+        disabled: boolean
+    }
+
+    export interface ShareServerReq {
+        server_id: number,
+        user_ids: number[],
+    }
 }

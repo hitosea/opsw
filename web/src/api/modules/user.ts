@@ -12,3 +12,11 @@ export const userLogin = (params: User.LoginReq) => {
 export const userReg = (params: User.RegReq) => {
     return http.post<User.Info>('user/reg', params)
 };
+
+export const getUserShareOptions = () => {
+    return http.get<User.Options>('user/share-options')
+};
+
+export const userShareServer = (params:any) => {
+    return http.post<User.ShareServerReq>('user/share-server', params)
+};

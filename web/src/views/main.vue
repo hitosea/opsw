@@ -128,6 +128,19 @@
                 <Log :ip="logIp" v-model:show="logModal"/>
             </n-card>
         </n-modal>
+
+        <!-- 分享 -->
+        <n-modal v-model:show="shareModal" :auto-focus="false">
+            <n-card
+                style="width:600px;max-width:90%"
+                title="分享给"
+                :bordered="false"
+                size="huge"
+                closable
+                @close="shareModal=false">
+                <Share :shareServerId="shareServerId" v-model:show="shareModal" @onShareDone="shareDone"/>
+            </n-card>
+        </n-modal>
     </div>
 </template>
 
@@ -141,6 +154,7 @@ import Create from "../components/Create.vue";
 import {ResultDialog} from "../api";
 import utils from "../utils/utils";
 import Log from "../components/Log.vue";
+import Share from "../components/Share.vue";
 import {CONST} from "../store/constant";
 import {getServerList, getServerOne, operationServer} from "../api/modules/server";
 import {WsStore} from "../store/ws";
@@ -152,6 +166,7 @@ export default defineComponent({
     components: {
         EditText,
         Log,
+        Share,
         Create,
         Loading,
         Header,
@@ -167,6 +182,8 @@ export default defineComponent({
         const dLog = ref(null);
         const createModal = ref(false);
         const logModal = ref(false);
+        const shareModal = ref(false);
+        const shareServerId = ref(0);
         const logIp = ref("");
         const loadIng = ref(false);
         const loadShow = ref(false);
@@ -229,6 +246,9 @@ export default defineComponent({
                 type: 'divider',
                 key: 'd1'
             }, {
+                label: '分享',
+                key: 'share',
+            },{
                 label: '日志',
                 key: 'log',
             }, {
@@ -273,6 +293,10 @@ export default defineComponent({
                 operationMenu.value.forEach(v => {
                     if (utils.leftExists(v.key, 'manage/')) {
                         v['disabled'] = disabled
+                    }
+
+                    if (v.key == 'share' && item.owner_id != item.user_id) {
+                        v['disabled'] = true
                     }
                 })
                 operationSetShow('upgrade', item.upgrade !== "")
@@ -331,6 +355,9 @@ export default defineComponent({
             } else if (utils.leftExists(key, 'manage/')) {
                 const url = `${key}?ip=${item.ip}&theme=${globalStore.themeName}`
                 window.open(url)
+            } else if (key === 'share') {
+                shareServerId.value = item.id
+                shareModal.value = true
             } else {
                 message.warning(`未知操作：${key}`)
             }
@@ -397,6 +424,11 @@ export default defineComponent({
 
         const createDone = () => {
             createModal.value = false
+            onLoad(true, true)
+        }
+
+        const shareDone = () => {
+            shareModal.value = false
             onLoad(true, true)
         }
 
@@ -474,6 +506,10 @@ export default defineComponent({
 
             logModal,
             logIp,
+
+            shareModal,
+            shareServerId,
+            shareDone,
 
             loadIng,
             loadShow,

@@ -164,7 +164,7 @@ func (app *AppStruct) AuthApiServerList() {
 	query := db.Model(&database.Server{}).
 		Select("servers.*, server_users.user_id, server_users.server_id, server_users.owner_id, server_infos.hostname, server_infos.platform, server_infos.platform_version, server_infos.version, server_infos.current_info").
 		Joins("left join server_users on server_users.server_id = servers.id").
-		Joins("left join server_infos on server_infos.server_id = servers.id")
+		Joins("left join server_infos on server_infos.server_id = servers.id").Where("server_users.user_id = ?", app.UserInfo.Id)
 	if key != "" {
 		query = query.Where("servers.ip like ? OR servers.remark like ? OR server_infos.hostname like ?", "%"+key+"%", "%"+key+"%", "%"+key+"%")
 	}
