@@ -84,6 +84,7 @@ import {FormInst, FormItemRule, FormRules, useMessage} from 'naive-ui'
 import {ResultDialog} from "../api";
 import utils from "../utils/utils";
 import {userLogin, userReg} from "../api/modules/user";
+import {UserStore} from "../store/user";
 
 export default defineComponent({
     components: {
@@ -92,6 +93,7 @@ export default defineComponent({
     },
     setup() {
         const message = useMessage()
+        const userStore = UserStore()
         const loadIng = ref<boolean>(false)
         const formRef = ref<FormInst>()
         const formData = ref({
@@ -167,9 +169,11 @@ export default defineComponent({
                 (formData.value.type === 'reg' ? userReg : userLogin)(formData.value)
                     .then(({msg}) => {
                         message.success(msg);
-                        setTimeout(() => {
-                            window.location.href = utils.removeURLParameter(window.location.href, ['result_code', 'result_msg'])
-                        }, 300)
+                        userStore.refresh().then(() => {
+                            setTimeout(() => {
+                                window.location.href = utils.removeURLParameter(window.location.href, ['result_code', 'result_msg'])
+                            }, 300)
+                        })
                     })
                     .catch(ResultDialog)
                     .finally(() => {
